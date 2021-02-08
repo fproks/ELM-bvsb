@@ -36,8 +36,7 @@ from elm.random_layer import RandomLayer, MLPRandomLayer
 __all__ = ["ELMRegressor",
            "ELMClassifier",
            "GenELMRegressor",
-           "GenELMClassifier",
-           "BvsbClassifier"]
+           "GenELMClassifier"]
 
 
 # BaseELM class, regressor and hidden_layer attributes
@@ -618,42 +617,7 @@ class ELMClassifier(ELMRegressor):
         from sklearn.metrics import accuracy_score
         return accuracy_score(y, self.predict(X))
 
-
-
-
-class BvsbClassifier:
-    """cls: perdiction data """
-
-    @classmethod
-    def bvsb(cls: np.ndarray) -> np.ndarray:
-        p_temp = np.sqrt(cls)[:, -2:]
-        return p_temp[:, -1] - p_temp[:, -2]
-
-    """:type"""
-
-    @classmethod
-    def argBvsb(percentageData: np.ndarray, percentage=0.2) -> np.ndarray:
-        assert percentage > 0
-        bvsvData = BvsbClassifier.bvsb(percentageData)
-        per_size = 0
-        if percentage <= 1:
-            per_size = int(np.ceil(np.shape(bvsvData)[0] * percentage))
-        else:
-            per_size = int(np.ceil(percentage))
-        return np.argsort(bvsvData)[int(-per_size):]
-
-    @classmethod
-    def addTrainData(X_train: np.ndarray, Y_train: np.ndarray, X_addit: np.ndarray, Y_addit: np.ndarray,
-                     argAdditional: np.ndarray):
-        assert np.shape(X_train)[1] == np.shape(X_addit)[1]
-        assert argAdditional.ndim == 1
-        assert X_train.shape[0] == Y_train.shape[0]
-        assert X_addit.shape[0] == Y_addit.shape[0]
-        assert X_addit.shape[0] <= argAdditional.shape[0]
-        X_additionalData = X_addit[argAdditional]
-        assert np.shape(X_train)[1] == np.shape(X_additionalData)[1]
-        X_result = np.r_[X_train, X_additionalData]
-        assert np.shape(X_result)[0] == np.shape(X_train)[0] + np.shape(argAdditional)[0]
-        Y_additionalData = Y_addit[argAdditional]
-        Y_result = np.r_[Y_train, Y_additionalData]
-        return X_result, Y_result
+    def scoreWithPredict(self, y, preData):
+        from sklearn.metrics import accuracy_score
+        class_predictions=self.binarizer.inverse_transform(preData)
+        return accuracy_score(y, class_predictions)
