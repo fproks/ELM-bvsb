@@ -4,7 +4,8 @@ from elm.elm import ELMClassifier
 
 
 class BvsbClassifier:
-    def __init__(self, X_train: np.ndarray, Y_train: np.ndarray, X_iter: np.ndarray, Y_iter: np.ndarray, iterNum=0.2):
+    def __init__(self, X_train: np.ndarray, Y_train: np.ndarray, X_iter: np.ndarray, Y_iter: np.ndarray, iterNum=0.2,
+                 upLimit=0.5):
         assert type(iterNum) is float or type(iterNum) is int
         assert X_train.size != 0 and Y_train.size != 0 and X_iter.size != 0 and Y_iter.size != 0
         if iterNum < 1:
@@ -18,6 +19,9 @@ class BvsbClassifier:
         self.X_test = None
         self.Y_test = None
         self.elmc = None
+        self._score = 0
+        self._upperLimit = np.ceil(Y_iter.size * upLimit)
+        self._iter_continue = True
         print("pernumber is %d" % self.perNum)
 
     def createELM(self, n_hidden, activation_func, alpha, random_state):
@@ -35,63 +39,67 @@ class BvsbClassifier:
 
     def argBvsbWithAccuracy(self, perData: np.ndarray) -> np.ndarray:
         argAcc = BvsbUtils.getAccIndex(self.Y_iter, perData)
-        print("根据我的结果得到的正确率%f" % (argAcc.size / self.Y_iter.size))
+        print("KNN与ELM匹配个数%d" % argAcc.size)
         if argAcc.size == 0:
             return np.array([], dtype=int)
         assert argAcc.max() < perData.shape[0]
         bvsbData = self.calculateBvsb(perData)
         arrBvsb = np.c_[bvsbData[argAcc], argAcc]
         argSBvsbAcc = arrBvsb[arrBvsb[:, 0].argsort()][:, 1]
-        return argSBvsbAcc[-self.perNum:].astype(int)
+        _iterNum = min(self.perNum, self._upperLimit)
+        return argSBvsbAcc[-_iterNum:].astype(int)
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
 
-    def getBvsbWithAccuracy(self, perData: np.ndarray):
+    def updateTrainData(self, perData: np.ndarray):
+        if self._upperLimit <= 0:
+            self._iter_continue = False
+            return 0
         assert perData.ndim != 1
         print(perData.shape)
         print(self.X_train.shape)
         # assert perData.shape[1] == self.X_train.shape[1]
         argBvsb = self.argBvsbWithAccuracy(perData)
-        X_result = self.X_iter[argBvsb]
-        Y_result = self.Y_iter[argBvsb]
+        if argBvsb.size < (self.perNum * 0.1):
+            self._iter_continue = False
+            return
+        self._upperLimit -= argBvsb.size
+        X_add = self.X_iter[argBvsb]
+        Y_add = self.Y_iter[argBvsb]
         self.X_iter = np.delete(self.X_iter, argBvsb, axis=0)
         self.Y_iter = np.delete(self.Y_iter, argBvsb, axis=0)
-        return X_result, Y_result
-
-    def updateTrainData(self, preData):
-        X_add, Y_add = self.getBvsbWithAccuracy(preData)
         print("增加数据%d个" % Y_add.size)
-        if Y_add.size < self.perNum / 2:
-            return Y_add.size
+        print("")
         self.X_train = np.r_[self.X_train, X_add]
         self.Y_train = np.r_[self.Y_train, Y_add]
         print("训练集数据现在有%d个" % self.Y_train.size)
         print("剩余迭代数据%d个" % self.Y_iter.size)
-        if self.Y_iter.size < self.perNum:
-            self.X_train = np.r_[self.X_train, self.X_iter]
-            self.Y_train = np.r_[self.Y_train, self.Y_iter]
-            self.X_iter = np.array([[]])
-            self.Y_iter = np.array([])
+        # if self.Y_iter.size < self.perNum:
+        #     self.X_train = np.r_[self.X_train, self.X_iter]
+        #     self.Y_train = np.r_[self.Y_train, self.Y_iter]
+        #     self.X_iter = np.array([[]])
+        #     self.Y_iter = np.array([])
         return Y_add.size
 
     """数据添加到训练集合中"""
 
+    def score(self, x, y):
+        _tmp = self.elmc.score(x, y)
+        if _tmp > self._score: self._score = _tmp
+        return self._score
+
     def TrainELMWithBvsb(self):
         i = 0
-        while self.Y_iter.size > self.perNum:
-            print(i)
+        while self._iter_continue:
             i = i + 1
+            print("-------------------")
+            print("第%d次训练" % i)
             self.elmc.fit(self.X_train, self.Y_train)
             preData = self.elmc.predict_with_percentage(self.X_iter)
             score = self.elmc.scoreWithPredict(self.Y_iter, preData)
             print("根据他们的结果得到的正确率%f" % score)
-            if score < 0.3:
-                break
             addSize = self.updateTrainData(preData)
-            print("目前，测试机的分类正确率%f" % (self.elmc.score(self.X_test, self.Y_test)))
-            if addSize < self.perNum / 2:
-                break
-        self.elmc.fit(self.X_train, self.Y_train)
+            print("目前，测试机的分类正确率%f" % (self.score(self.X_test, self.Y_test)))
 
 
 class BvsbUtils(object):
@@ -109,6 +117,7 @@ class BvsbUtils(object):
         binarizer = LabelBinarizer(-1, 1)
         binarizer.fit(Y)
         return binarizer.inverse_transform(perData)
+        # return perData.argmax(axis=1)
 
     @staticmethod
     def argCorrectClassify(Y_true: np.ndarray, Y_pred: np.ndarray) -> np.ndarray:

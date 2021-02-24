@@ -603,7 +603,8 @@ class ELMClassifier(ELMRegressor):
         C : numpy array of shape [n_samples, n_outputs]
             Predicted values.
         """
-        class_predictions = self.binarizer.inverse_transform(self.predict_with_percentage(X))
+        tmp=self.predict_with_percentage(X)
+        class_predictions = self.binarizer.inverse_transform(tmp)
 
         return class_predictions
 
