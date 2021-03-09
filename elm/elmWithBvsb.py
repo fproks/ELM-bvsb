@@ -74,14 +74,35 @@ class BvsbClassifier:
         self.Y_train = np.r_[self.Y_train, Y_add]
         print("训练集数据现在有%d个" % self.Y_train.size)
         print("剩余迭代数据%d个" % self.Y_iter.size)
-        # if self.Y_iter.size < self.perNum:
-        #     self.X_train = np.r_[self.X_train, self.X_iter]
-        #     self.Y_train = np.r_[self.Y_train, self.Y_iter]
-        #     self.X_iter = np.array([[]])
-        #     self.Y_iter = np.array([])
         return Y_add.size
 
     """数据添加到训练集合中"""
+
+    def updateDataWithoutKNN(self, preData: np.ndarray):
+        if self._upperLimit <= 0:
+            self._iter_continue = False
+            return 0
+        assert preData.ndim != 1
+        if preData.shape[0] <= self._upperLimit:
+            self._iter_continue = False
+            return
+        _iterNum = int(min(self._upperLimit, self.perNum))
+        if _iterNum < (self.perNum * 0.1):
+            self._iter_continue = False
+            return
+        argbvsbData = self.calculateBvsb(preData).argsort()
+        sortArgBvsb = argbvsbData[-_iterNum:].astype(int)
+        self._upperLimit -= _iterNum
+        Y_iter = self.elmc.binarizer.inverse_transform(preData)
+        X_add = self.X_iter[sortArgBvsb]
+        Y_add = Y_iter[sortArgBvsb]
+        self.X_iter = np.delete(self.X_iter, sortArgBvsb, axis=0)
+        print("增加数据%d个" % Y_add.size)
+        self.X_train = np.r_[self.X_train, X_add]
+        self.Y_train = np.r_[self.Y_train, Y_add]
+        print("训练集现有数据%d个" % self.Y_train.size)
+        print("剩余迭代数据%d个" % self.X_iter.shape[0])
+        return Y_add.size
 
     def score(self, x, y):
         _tmp = self.elmc.score(x, y)
@@ -100,6 +121,17 @@ class BvsbClassifier:
             print("根据他们的结果得到的正确率%f" % score)
             addSize = self.updateTrainData(preData)
             print("目前，测试机的分类正确率%f" % (self.score(self.X_test, self.Y_test)))
+
+    def TrainELMWithoutKNN(self):
+        i = 0
+        while self._iter_continue:
+            i = i + 1
+            print("-----------ELM Without KNN---------------")
+            print("第%d次训练" % i)
+            self.elmc.fit(self.X_train, self.Y_train)
+            preData = self.elmc.predict_with_percentage(self.X_iter)
+            addsize = self.updateDataWithoutKNN(preData)
+            print("测试集分类正确率%f" % (self.score(self.X_test, self.Y_test)))
 
 
 class BvsbUtils(object):

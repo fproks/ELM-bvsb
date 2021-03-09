@@ -11,14 +11,7 @@ print("------------")
 digits = datasets.load_digits()
 dgx = digits.data
 stdc = StandardScaler()  # 均值归一化
-# dgx, dgy = stdc.fit_transform(digits.data / 16.0), digits.target
-#
-# digits = datasets.fetch_olivetti_faces()
-# buf = []
-# for img in digits.images:
-#     buf.append(img.flatten())
 
-# dgx = np.array(buf)
 dgy = digits.target
 print("数据个数:%d" % dgy.size)
 dgx, dgy = stdc.fit_transform(digits.data / 16.0), digits.target
