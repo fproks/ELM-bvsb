@@ -25,7 +25,7 @@ bvsbc = BvsbClassifier(X_train, Y_train, X_iter, Y_iter, iterNum=0.1)
 bvsbc.createELM(n_hidden=1000, activation_func="tanh", alpha=1.0, random_state=0)
 bvsbc.X_test = dgx_test
 bvsbc.Y_test = dgy_test
-bvsbc.TrainELMWithBvsb()
+bvsbc.trainELMWithBvsb()
 toc = time.perf_counter_ns()
 # bvsbc.elmc.fit(dgx_train,dgy_train)
 print("+++++++++++++++++++")

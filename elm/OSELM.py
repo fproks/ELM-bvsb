@@ -71,7 +71,11 @@ class OSELM(object):
         prediction = np.dot(H, self.beta)
         return prediction
 
-    def score(self, X, y):
+    def scoreWithPredict(self, y: np.ndarray, predict):
         from sklearn.metrics import accuracy_score
-        _y = self.binarizer.inverse_transform(self.predict(X))
+        _y = self.binarizer.inverse_transform(predict)
+        if y.ndim == 2: y = self.binarizer.inverse_transform(y)
         return accuracy_score(y, _y)
+
+    def score(self, X, y):
+        return self.scoreWithPredict(y, self.predict(X))
