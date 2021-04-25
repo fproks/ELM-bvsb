@@ -2,10 +2,14 @@
 import numpy as np
 from elm.elm import ELMClassifier
 from elm.OSELM import OSELM
+import warnings
+from sklearn.decomposition import PCA
+from config import LOGGER
 
 
 class BvsbClassifier:
-    def __init__(self, X_train: np.ndarray, Y_train: np.ndarray, X_iter: np.ndarray, Y_iter: np.ndarray, iterNum=0.2,
+    def __init__(self, X_train: np.ndarray, Y_train: np.ndarray, X_iter: np.ndarray, Y_iter: np.ndarray,
+                 x_test: np.ndarray, y_test: np.ndarray, iterNum=0.2,
                  upLimit=0.5):
         assert type(iterNum) is float or type(iterNum) is int
         assert X_train.size != 0 and Y_train.size != 0 and X_iter.size != 0 and Y_iter.size != 0
@@ -17,8 +21,8 @@ class BvsbClassifier:
         self.Y_train = Y_train
         self.X_iter = X_iter
         self.Y_iter = Y_iter
-        self.X_test = None
-        self.Y_test = None
+        self.X_test = x_test
+        self.Y_test = y_test
         self.elmc = None
         self._score = 0
         self._upperLimit = np.ceil(Y_iter.size * upLimit)
@@ -33,7 +37,7 @@ class BvsbClassifier:
     def createOSELM(self, n_hidden):
         assert self.elmc is None
         self.elmc = OSELM(self.X_train, self.Y_train, n_hidden)
-        self.Y_iter=self.elmc.binarizer.fit_transform(self.Y_iter)
+        self.Y_iter = self.elmc.binarizer.fit_transform(self.Y_iter)
 
     """计算bvsb"""
 
@@ -45,14 +49,16 @@ class BvsbClassifier:
 
     def argBvsbWithAccuracy(self, perData: np.ndarray) -> np.ndarray:
         argAcc = BvsbUtils.getAccIndex(self.Y_iter, perData)
-        print("KNN与ELM匹配个数%d" % argAcc.size)
+        LOGGER.info(f'KNN与ELM匹配个数{argAcc.size}')
         if argAcc.size == 0:
             return np.array([], dtype=int)
         assert argAcc.max() < perData.shape[0]
         bvsbData = self.calculateBvsb(perData)
         arrBvsb = np.c_[bvsbData[argAcc], argAcc]
         argSBvsbAcc = arrBvsb[arrBvsb[:, 0].argsort()][:, 1]
-        _iterNum = min(self.perNum, self._upperLimit)
+        _iterNum = int(min(self.perNum, self._upperLimit))
+        LOGGER.debug(f'______________欲获取的bvsb-knn数据个数:{_iterNum}')
+        LOGGER.debug(f'______________bvsb-knn 一致后数据个数: {len(argSBvsbAcc)}')
         return argSBvsbAcc[-_iterNum:].astype(int)
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
@@ -203,3 +209,32 @@ class BvsbUtils(object):
     @staticmethod
     def getAccIndex(Y_true, perData):
         return BvsbUtils.argCorrectClassify(Y_true, BvsbUtils.classPrediction(perData, Y_true))
+
+    @staticmethod
+    def dimensionReductionWithPCA(data: np.ndarray, n_components=None) -> np.ndarray:
+        LOGGER.info("Dimensionality reduction  with PCA")
+        def _su(a: list, cp: float):
+            p = 0
+            for i in range(len(a)):
+                p += a[i]
+                if p > cp: return i
+            return len(a)
+
+        assert data.ndim == 2
+        import math
+        if n_components is None: n_components = math.ceil(data.shape[1] / 2)
+        assert isinstance(n_components, int) or isinstance(n_components, float)
+        pca = None
+        if isinstance(n_components, int):
+            if n_components > min(data.shape):
+                n_components = min(data.shape)
+                warnings.warn(f'n_components exceed max size,revise to ${n_components}')
+                pca = PCA(n_components)
+                return pca.fit_transform(data)
+        else:
+            assert 0 < n_components < 1
+            pca = PCA()
+            result = pca.fit_transform(data)
+            components = _su(pca.explained_variance_ratio_, n_components)
+            LOGGER.info(f'Dimensionality reduction components is {components}')
+            return result[:, 0:components + 1]
