@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import pinv
 from sklearn.preprocessing import LabelBinarizer
+from config import LOGGER
 
 
 def sigmoidActFunc(features: np.ndarray, weights: np.ndarray, bias):
@@ -8,6 +9,15 @@ def sigmoidActFunc(features: np.ndarray, weights: np.ndarray, bias):
     V = np.dot(features, np.transpose(weights)) + bias
     H = 1 / (1 + np.exp(-V))
     return H
+
+
+def transformYWithOutnumbers(y: np.ndarray, outnumber: int) -> np.ndarray:
+    assert y.ndim == 1
+    result = np.zeros((y.size, outnumber), int)
+    for i in range(y.size):
+        result[i, y[i]] = 1
+    result[result == 0] = -1
+    return result
 
 
 class OSELM(object):
@@ -30,7 +40,7 @@ class OSELM(object):
         if self.activationFunction == "sig":
             H = sigmoidActFunc(features, self.inputWeights, self.bias)
         else:
-            print("Unknow activation function type")
+            LOGGER.error("Unknow activation function type")
             raise NotImplementedError
         return H
 
@@ -44,7 +54,7 @@ class OSELM(object):
         if self.activationFunction == "sig":
             self.bias = np.random.random((1, self.numHiddenNeurons)) * 2 - 1
         else:
-            print("Unknown activation function type")
+            LOGGER.error("Unknown activation function type")
             raise NotImplementedError
         H0 = self.calculateHiddenLayerActivation(features)
         self.M = pinv(np.dot(np.transpose(H0), H0))
@@ -53,9 +63,12 @@ class OSELM(object):
     # https://blog.csdn.net/google19890102/article/details/45273309
     def train(self, features: np.ndarray, targets: np.ndarray):
         if targets.ndim == 1:
-            targets = self.binarizer.fit_transform(targets)
+            _targets = self.binarizer.transform(targets)
+            if _targets.shape[0] != self.outputs:
+                targets = transformYWithOutnumbers(targets, self.outputs)
         (numSamples, numOutputs) = targets.shape
         assert features.shape[0] == targets.shape[0]
+        assert numOutputs==self.outputs
         H = self.calculateHiddenLayerActivation(features)
         Ht = np.transpose(H)
         try:
@@ -64,7 +77,7 @@ class OSELM(object):
                 np.dot(H, self.M))))
             self.beta += np.dot(np.dot(self.M, Ht), (targets - np.dot(H, self.beta)))
         except np.linalg.LinAlgError:
-            print("SVD not converge, ignore the current training cycle")
+            LOGGER.error("SVD not converge, ignore the current training cycle")
 
     def predict(self, features: np.ndarray):
         H = self.calculateHiddenLayerActivation(features)

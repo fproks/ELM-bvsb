@@ -27,15 +27,17 @@ class BvsbClassifier:
         self._score = 0
         self._upperLimit = np.ceil(Y_iter.size * upLimit)
         self._iter_continue = True
-        print("pernumber is %d" % self.perNum)
+        LOGGER.info(f'perNumber is {self.perNum}')
 
     def createELM(self, n_hidden, activation_func, alpha, random_state):
         assert self.elmc is None
+        LOGGER.info("create and init ELM")
         self.elmc = ELMClassifier(n_hidden=n_hidden, activation_func=activation_func, alpha=alpha,
                                   random_state=random_state)
 
     def createOSELM(self, n_hidden):
         assert self.elmc is None
+        LOGGER.info("create and init OSELM")
         self.elmc = OSELM(self.X_train, self.Y_train, n_hidden)
         self.Y_iter = self.elmc.binarizer.fit_transform(self.Y_iter)
 
@@ -57,8 +59,8 @@ class BvsbClassifier:
         arrBvsb = np.c_[bvsbData[argAcc], argAcc]
         argSBvsbAcc = arrBvsb[arrBvsb[:, 0].argsort()][:, 1]
         _iterNum = int(min(self.perNum, self._upperLimit))
-        LOGGER.debug(f'______________欲获取的bvsb-knn数据个数:{_iterNum}')
-        LOGGER.debug(f'______________bvsb-knn 一致后数据个数: {len(argSBvsbAcc)}')
+        LOGGER.debug(f'欲获取的bvsb-knn数据个数:{_iterNum}')
+        LOGGER.debug(f'bvsb-knn 一致后数据个数: {len(argSBvsbAcc)}')
         return argSBvsbAcc[-_iterNum:].astype(int)
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
@@ -75,6 +77,7 @@ class BvsbClassifier:
         self._upperLimit -= argBvab.size
         X_up = self.X_iter[argBvab]
         Y_up = self.Y_iter[argBvab]
+        LOGGER.info(f'获取再次迭代数据{len(Y_up)}个')
         self.X_iter = np.delete(self.X_iter, argBvab, axis=0)
         self.Y_iter = np.delete(self.Y_iter, argBvab, axis=0)
         return X_up, Y_up
@@ -83,12 +86,11 @@ class BvsbClassifier:
         _data = self.getUpdateData(preData)
         if _data is None:
             return None
-        print("增加数据%d个" % _data[1].size)
-        print("")
+        LOGGER.info(f'增加数据 {_data[1].size}个')
         self.X_train = np.r_[self.X_train, _data[0]]
         self.Y_train = np.r_[self.Y_train, _data[1]]
-        print("训练集数据现在有%d个" % self.Y_train.size)
-        print("剩余迭代数据%d个" % self.Y_iter.size)
+        LOGGER.info(f'训练集数据现在有 {self.Y_train.size}个')
+        LOGGER.info(f'剩余迭代数据 {self.Y_iter.size}个')
         return _data[1].size
 
     """数据添加到训练集合中"""
@@ -96,15 +98,15 @@ class BvsbClassifier:
     def getUpdateDateWithoutKNN(self, preData: np.ndarray):
         if self._upperLimit <= 0:
             self._iter_continue = False
-            return 0
+            return None
         assert preData.ndim != 1
         if preData.shape[0] <= self._upperLimit:
             self._iter_continue = False
-            return
+            return None
         _iterNum = int(min(self._upperLimit, self.perNum))
         if _iterNum < (self.perNum * 0.1):
             self._iter_continue = False
-            return
+            return None
         argbvsbData = self.calculateBvsb(preData).argsort()
         sortArgBvsb = argbvsbData[-_iterNum:].astype(int)
         self._upperLimit -= _iterNum
@@ -116,11 +118,11 @@ class BvsbClassifier:
 
     def updateDataWithoutKNN(self, preData: np.ndarray):
         X_add, Y_add = self.getUpdateDateWithoutKNN(preData)
-        print("增加数据%d个" % Y_add.size)
+        LOGGER.info(f'增加数据 { Y_add.size}')
         self.X_train = np.r_[self.X_train, X_add]
         self.Y_train = np.r_[self.Y_train, Y_add]
-        print("训练集现有数据%d个" % self.Y_train.size)
-        print("剩余迭代数据%d个" % self.X_iter.shape[0])
+        LOGGER.info(f'训练集现有数据 {self.Y_train.size}个')
+        LOGGER.info(f'剩余迭代数据{self.X_iter.shape[0]}个')
         return Y_add.size
 
     def score(self, x, y):
@@ -130,58 +132,60 @@ class BvsbClassifier:
 
     def trainELMWithBvsb(self):
         i = 0
+        print("---------------------ELM-BVSB-TRAIN-----------------------------")
         while self._iter_continue:
             i = i + 1
-            print("-------------------")
-            print("第%d次训练" % i)
+            print(f'--------------------第{i}次训练--------------------')
             self.elmc.fit(self.X_train, self.Y_train)
             preData = self.elmc.predict_with_percentage(self.X_iter)
             score = self.elmc.scoreWithPredict(self.Y_iter, preData)
-            print("根据他们的结果得到的正确率%f" % score)
-            print(type(preData))
-            addSize = self.updateTrainData(preData)
-            print("目前，测试机的分类正确率%f" % (self.score(self.X_test, self.Y_test)))
+            LOGGER.info(f'第{i}次迭代后迭代数据集的正确率为{score}')
+            LOGGER.debug(f'perData 类型为:{type(preData)}')
+            self.updateTrainData(preData)
+            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
     def trainOSELMWithBvsb(self):
         i = 0
+        print("-------------------------------OSELM-BVSB-TRAIN------------------------------------------")
+        LOGGER.info(f'迭代训练前算法对测试集的正确率为{self.elmc.score(self.X_test,self.Y_test)}')
         while self._iter_continue:
             i = i + 1
-            print("------------------------------")
-            print("第%d次训练" % i)
+            print(f'---------------第{i}次训练-------------------')
             predict = self.elmc.predict(self.X_iter)
             score = self.elmc.scoreWithPredict(self.Y_iter, predict)
-            print("迭代数据正确率%f" % score)
+            LOGGER.info(f'第{i}次迭代后迭代数据集的正确率为{score}')
             _data = self.getUpdateData(predict)
             if _data is None:
-                print("未获取数据，迭代结束")
+                LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
             self.elmc.train(_data[0], _data[1])
-            print("目前测试集的分类正确率为%f" % (self.elmc.score(self.X_test, self.Y_test)))
+            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
 
     def trainELMWithoutKNN(self):
         i = 0
+        print("-------------------------ELM Without KNN-------------------------")
         while self._iter_continue:
             i = i + 1
-            print("-----------ELM Without KNN---------------")
-            print("第%d次训练" % i)
+            print(f'---------------第{i}次训练-------------------')
             self.elmc.fit(self.X_train, self.Y_train)
             preData = self.elmc.predict_with_percentage(self.X_iter)
-            addsize = self.updateDataWithoutKNN(preData)
-            print("测试集分类正确率%f" % (self.score(self.X_test, self.Y_test)))
+            self.updateDataWithoutKNN(preData)
+            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
 
     def trainOSELMWithoutKNN(self):
         i = 0
-        print("-----------------OSELM WITHOUT KNN---------------------")
+        print("----------------------OSELM WITHOUT KNN---------------------------")
         while self._iter_continue:
             i = i + 1
-            print("第%d次训练" % i)
+            print(f'---------------第{i}次训练-------------------')
             predict = self.elmc.predict(self.X_iter)
-            x_add, y_add = self.getUpdateDateWithoutKNN(predict)
-            if x_add is None:
-                print("获取训练数据为空，训练结束")
+            _data = self.getUpdateDateWithoutKNN(predict)
+            if _data is None:
+                LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
-            self.elmc.train(x_add, y_add)
-            print("目前测试集正确率为%f" % (self.score(x_add, y_add)))
+            LOGGER.info(f'第{i}次训练时进行训练的数据个数:{_data[1].size}')
+            self.elmc.train(_data[0], _data[1])
+            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
 
 class BvsbUtils(object):

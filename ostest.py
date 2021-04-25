@@ -2,6 +2,7 @@ from elm import OSELM
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn import datasets
+import numpy as np
 
 stdsc = StandardScaler()
 digits = datasets.load_digits()
@@ -16,3 +17,5 @@ outputs = dgy.max() + 1
 oselm = OSELM(dgx_train, dgy_train, 1000)
 
 print(oselm.score(dgx_test, dgy_test))
+
+
