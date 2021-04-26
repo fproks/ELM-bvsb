@@ -149,7 +149,7 @@ class GenELMRegressor(BaseELM, RegressorMixin):
         fit regression using pseudo-inverse
         or supplied regressor
         """
-        if (self.regressor is None):
+        if self.regressor is None:
             self.coefs_ = safe_sparse_dot(pinv2(self.hidden_activations_), y)
         else:
             self.regressor.fit(self.hidden_activations_, y)
@@ -186,7 +186,7 @@ class GenELMRegressor(BaseELM, RegressorMixin):
 
     def _get_predictions(self):
         """get predictions using internal least squares/supplied regressor"""
-        if (self.regressor is None):
+        if self.regressor is None:
             preds = safe_sparse_dot(self.hidden_activations_, self.coefs_)
         else:
             preds = self.regressor.predict(self.hidden_activations_)
@@ -206,7 +206,7 @@ class GenELMRegressor(BaseELM, RegressorMixin):
         C : numpy array of shape [n_samples, n_outputs]
             Predicted values.
         """
-        if (not self.fitted_):
+        if not self.fitted_:
             raise ValueError("ELMRegressor not fitted")
 
         # compute hidden layer activations
@@ -468,7 +468,7 @@ class ELMRegressor(BaseEstimator, RegressorMixin):
         C : numpy array of shape [n_samples, n_outputs]
             Predicted values.
         """
-        if (self._genelm_regressor is None):
+        if self._genelm_regressor is None:
             raise ValueError("SimpleELMRegressor not fitted")
 
         return self._genelm_regressor.predict(X)

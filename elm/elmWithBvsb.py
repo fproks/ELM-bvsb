@@ -43,10 +43,6 @@ class BvsbClassifier:
 
     """计算bvsb"""
 
-    def calculateBvsb(self, percentageData: np.ndarray) -> np.ndarray:
-        p_temp = np.sort(percentageData)[:, -2:]
-        return p_temp[:, -1] - p_temp[:, -2]
-
     """获取分类正确的数据中bvsb靠前的数据索引"""
 
     def argBvsbWithAccuracy(self, perData: np.ndarray) -> np.ndarray:
@@ -55,7 +51,7 @@ class BvsbClassifier:
         if argAcc.size == 0:
             return np.array([], dtype=int)
         assert argAcc.max() < perData.shape[0]
-        bvsbData = self.calculateBvsb(perData)
+        bvsbData = BvsbUtils.calculateBvsb(perData)
         arrBvsb = np.c_[bvsbData[argAcc], argAcc]
         argSBvsbAcc = arrBvsb[arrBvsb[:, 0].argsort()][:, 1]
         _iterNum = int(min(self.perNum, self._upperLimit))
@@ -107,7 +103,7 @@ class BvsbClassifier:
         if _iterNum < (self.perNum * 0.1):
             self._iter_continue = False
             return None
-        argbvsbData = self.calculateBvsb(preData).argsort()
+        argbvsbData = BvsbUtils.calculateBvsb(preData).argsort()
         sortArgBvsb = argbvsbData[-_iterNum:].astype(int)
         self._upperLimit -= _iterNum
         Y_iter = self.elmc.binarizer.inverse_transform(preData)
@@ -118,7 +114,7 @@ class BvsbClassifier:
 
     def updateDataWithoutKNN(self, preData: np.ndarray):
         X_add, Y_add = self.getUpdateDateWithoutKNN(preData)
-        LOGGER.info(f'增加数据 { Y_add.size}')
+        LOGGER.info(f'增加数据 {Y_add.size}')
         self.X_train = np.r_[self.X_train, X_add]
         self.Y_train = np.r_[self.Y_train, Y_add]
         LOGGER.info(f'训练集现有数据 {self.Y_train.size}个')
@@ -147,7 +143,7 @@ class BvsbClassifier:
     def trainOSELMWithBvsb(self):
         i = 0
         print("-------------------------------OSELM-BVSB-TRAIN------------------------------------------")
-        LOGGER.info(f'迭代训练前算法对测试集的正确率为{self.elmc.score(self.X_test,self.Y_test)}')
+        LOGGER.info(f'迭代训练前算法对测试集的正确率为{self.elmc.score(self.X_test, self.Y_test)}')
         while self._iter_continue:
             i = i + 1
             print(f'---------------第{i}次训练-------------------')
@@ -217,6 +213,7 @@ class BvsbUtils(object):
     @staticmethod
     def dimensionReductionWithPCA(data: np.ndarray, n_components=None) -> np.ndarray:
         LOGGER.info("Dimensionality reduction  with PCA")
+
         def _su(a: list, cp: float):
             p = 0
             for i in range(len(a)):
@@ -242,3 +239,8 @@ class BvsbUtils(object):
             components = _su(pca.explained_variance_ratio_, n_components)
             LOGGER.info(f'Dimensionality reduction components is {components}')
             return result[:, 0:components + 1]
+
+    @staticmethod
+    def calculateBvsb(percentageData: np.ndarray) -> np.ndarray:
+        p_temp = np.sort(percentageData)[:, -2:]
+        return p_temp[:, -1] - p_temp[:, -2]

@@ -80,8 +80,8 @@ class BaseRandomLayer(BaseEstimator, TransformerMixin):
 
         acts = self.input_activations_
 
-        if (callable(self.activation_func)):
-            args_dict = self.activation_args if (self.activation_args) else {}
+        if callable(self.activation_func):
+            args_dict = self.activation_args if self.activation_args else {}
             X_new = self.activation_func(acts, **args_dict)
         else:
             func_name = self.activation_func
@@ -132,7 +132,7 @@ class BaseRandomLayer(BaseEstimator, TransformerMixin):
         """
         X = check_array(X)
 
-        if (self.components_ is None):
+        if self.components_ is None:
             raise ValueError('No components initialized')
 
         return self._compute_hidden_activations(X)
@@ -263,9 +263,9 @@ class RandomLayer(BaseRandomLayer):
                                           activation_func=activation_func,
                                           activation_args=activation_args)
 
-        if (isinstance(self.activation_func, str)):
+        if isinstance(self.activation_func, str):
             func_names = self._internal_activation_funcs.keys()
-            if (self.activation_func not in func_names):
+            if self.activation_func not in func_names:
                 msg = "unknown activation function '%s'" % self.activation_func
                 raise ValueError(msg)
 
@@ -290,7 +290,7 @@ class RandomLayer(BaseRandomLayer):
         radii = self._get_user_components('radii')
 
         # compute radii
-        if (radii is None):
+        if radii is None:
             centers = self.components_['centers']
 
             n_centers = centers.shape[0]
@@ -307,11 +307,11 @@ class RandomLayer(BaseRandomLayer):
 
         # use points taken uniformly from the bounding
         # hyperrectangle
-        if (centers is None):
+        if centers is None:
             n_features = X.shape[1]
 
-            if (sparse):
-                fxr = xrange(n_features)
+            if sparse:
+                fxr = range(n_features)
                 cols = [X.getcol(i) for i in fxr]
 
                 min_dtype = X.dtype.type(1.0e10)
@@ -336,7 +336,7 @@ class RandomLayer(BaseRandomLayer):
 
         # use supplied biases if present
         biases = self._get_user_components('biases')
-        if (biases is None):
+        if biases is None:
             b_size = self.n_hidden
             biases = rs.normal(size=b_size)
 
@@ -347,7 +347,7 @@ class RandomLayer(BaseRandomLayer):
 
         # use supplied weights if present
         weights = self._get_user_components('weights')
-        if (weights is None):
+        if weights is None:
             n_features = X.shape[1]
             hw_size = (n_features, self.n_hidden)
             weights = rs.normal(size=hw_size)
@@ -358,11 +358,11 @@ class RandomLayer(BaseRandomLayer):
         """Generate components of hidden layer given X"""
 
         rs = check_random_state(self.random_state)
-        if (self._use_mlp_input):
+        if self._use_mlp_input:
             self._compute_biases(rs)
             self._compute_weights(X, rs)
 
-        if (self._use_rbf_input):
+        if self._use_rbf_input:
             self._compute_centers(X, sp.issparse(X), rs)
             self._compute_radii()
 
@@ -372,13 +372,13 @@ class RandomLayer(BaseRandomLayer):
         n_samples = X.shape[0]
 
         mlp_acts = np.zeros((n_samples, self.n_hidden))
-        if (self._use_mlp_input):
+        if self._use_mlp_input:
             b = self.components_['biases']
             w = self.components_['weights']
             mlp_acts = self.alpha * (safe_sparse_dot(X, w) + b)
 
         rbf_acts = np.zeros((n_samples, self.n_hidden))
-        if (self._use_rbf_input):
+        if self._use_rbf_input:
             radii = self.components_['radii']
             centers = self.components_['centers']
             scale = self.rbf_width * (1.0 - self.alpha)
