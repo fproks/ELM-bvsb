@@ -21,8 +21,7 @@ def transformYWithOutnumbers(y: np.ndarray, outnumber: int) -> np.ndarray:
 
 
 class OSELM(object):
-    def __init__(self, features: np.ndarray, targets: np.ndarray, numHiddenNeurons, activationFunction="sig"):
-        self.activationFunction = activationFunction
+    def __init__(self, features: np.ndarray, targets: np.ndarray, numHiddenNeurons):
         self.binarizer = LabelBinarizer(-1, 1)
         assert features.ndim == 2
         self.inputs = features.shape[1]
@@ -37,25 +36,15 @@ class OSELM(object):
         self.initializePhase(features, targets)
 
     def calculateHiddenLayerActivation(self, features):
-        if self.activationFunction == "sig":
-            H = sigmoidActFunc(features, self.inputWeights, self.bias)
-        else:
-            LOGGER.error("Unknow activation function type")
-            raise NotImplementedError
-        return H
+        return sigmoidActFunc(features, self.inputWeights, self.bias)
 
     def initializePhase(self, features: np.ndarray, targets: np.ndarray):
         assert features.shape[0] == targets.shape[0]
         if targets.ndim == 1:
             targets = self.binarizer.fit_transform(targets)
         assert targets.shape[1] == self.outputs
-        self.inputWeights = np.random.random((self.numHiddenNeurons, self.inputs))
-        self.inputWeights = self.inputWeights * 2 - 1
-        if self.activationFunction == "sig":
-            self.bias = np.random.random((1, self.numHiddenNeurons)) * 2 - 1
-        else:
-            LOGGER.error("Unknown activation function type")
-            raise NotImplementedError
+        self.inputWeights = np.random.random((self.numHiddenNeurons, self.inputs))*2-1
+        self.bias = np.random.random((1, self.numHiddenNeurons)) * 2 - 1
         H0 = self.calculateHiddenLayerActivation(features)
         self.M = pinv(np.dot(np.transpose(H0), H0))
         self.beta = np.dot(pinv(H0), targets)
@@ -77,7 +66,7 @@ class OSELM(object):
                 np.dot(H, self.M))))
             self.beta += np.dot(np.dot(self.M, Ht), (targets - np.dot(H, self.beta)))
         except np.linalg.LinAlgError:
-            LOGGER.error("SVD not converge, ignore the current training cycle")
+            LOGGER.error("can not converge, ignore the current training cycle")
 
     def predict(self, features: np.ndarray):
         H = self.calculateHiddenLayerActivation(features)

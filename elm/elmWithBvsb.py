@@ -138,7 +138,7 @@ class BvsbClassifier:
             LOGGER.info(f'第{i}次迭代后迭代数据集的正确率为{score}')
             LOGGER.debug(f'perData 类型为:{type(preData)}')
             self.updateTrainData(preData)
-            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
+            LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
     def trainOSELMWithBvsb(self):
         i = 0
@@ -155,7 +155,7 @@ class BvsbClassifier:
                 LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
             self.elmc.train(_data[0], _data[1])
-            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
+            LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
 
     def trainELMWithoutKNN(self):
         i = 0
@@ -166,7 +166,7 @@ class BvsbClassifier:
             self.elmc.fit(self.X_train, self.Y_train)
             preData = self.elmc.predict_with_percentage(self.X_iter)
             self.updateDataWithoutKNN(preData)
-            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
+            LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
 
     def trainOSELMWithoutKNN(self):
         i = 0
@@ -181,7 +181,7 @@ class BvsbClassifier:
                 break
             LOGGER.info(f'第{i}次训练时进行训练的数据个数:{_data[1].size}')
             self.elmc.train(_data[0], _data[1])
-            LOGGER.info(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
+            LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
 
 class BvsbUtils(object):
