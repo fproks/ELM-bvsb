@@ -10,21 +10,15 @@ from sklearn.preprocessing import StandardScaler
 import time
 
 print("---------OSELM-BVSB-KNN-----------")
-digits = datasets.load_digits()
-#
-# stdc = StandardScaler()  # 均值归一化
-# dgy = digits.target
-# print("数据个数:%d" % dgy.size)
-# dgx, dgy = stdc.fit_transform(digits.data / 16.0), digits.target
-#
-# dgx = BvsbUtils.dimensionReductionWithPCA(dgx, 0.95)
-#
-# dgx_train, dgx_test, dgy_train, dgy_test = train_test_split(dgx, dgy, test_size=0.5)
-# X_train, X_iter, Y_train, Y_iter = train_test_split(dgx_train, dgy_train, test_size=0.2)
-# Y_iter = BvsbUtils.KNNClassifierResult(X_train, Y_train, X_iter)
+data = datasets.load_digits()
+stdc=StandardScaler()
 
-(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(BvsbUtils.dimensionReductionWithPCA(digits.data, 0.95),
-                                                                digits.target, 0.2, 0.2)
+data.data,data.target=stdc.fit_transform(data.data)/16.0, data.target
+data.data=BvsbUtils.dimensionReductionWithPCA(data.data,0.95)
+data.data,_,data.target,_=train_test_split(data.data,data.target,test_size=0.7)
+label_size=0.3
+
+(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data,data.target, label_size, 0.2)
 iter_y=BvsbUtils.KNNClassifierResult(train_data[0],train_data[1],iter_data[0])
 
 tic = time.perf_counter_ns()
