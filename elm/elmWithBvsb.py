@@ -1,5 +1,7 @@
 # -*- coding: utf8
 import numpy as np
+from typing import Tuple
+
 from elm.elm import ELMClassifier
 from elm.OSELM import OSELM
 import warnings
@@ -61,7 +63,7 @@ class BvsbClassifier:
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
 
-    def getUpdateData(self, preData: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    def getUpdateData(self, preData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if self._upperLimit <= 0:
             self._iter_continue = False
             return None

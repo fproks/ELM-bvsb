@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from typing import Tuple
 
 stdsc = StandardScaler()
 from config import LOGGER
@@ -8,7 +9,7 @@ from config import LOGGER
 class elmUtils(object):
 
     @staticmethod
-    def _formatData(data: np.ndarray, target: np.ndarray, need: bool) -> tuple[np.ndarray, np.ndarray]:
+    def _formatData(data: np.ndarray, target: np.ndarray, need: bool) -> Tuple[np.ndarray, np.ndarray]:
         if need is False:
             return data, target
         if data.ndim == 3:
@@ -21,13 +22,13 @@ class elmUtils(object):
         return data, target
 
     @staticmethod
-    def splitData(data: np.ndarray, target: np.ndarray, test_size=0.5, need=True) -> tuple[tuple, tuple]:
+    def splitData(data: np.ndarray, target: np.ndarray, test_size=0.5, need=True) -> Tuple[tuple, tuple]:
         (data, target) = elmUtils._formatData(data, target, need)
         dgx_train, dgx_test, dgy_train, dgy_test = train_test_split(data, target, test_size=test_size)
         return (dgx_train, dgy_train), (dgx_test, dgy_test)
 
     @staticmethod
-    def splitDataWithIter(data: np.ndarray, target: np.ndarray, train_size=0.2, iter_size=0.5) -> tuple[
+    def splitDataWithIter(data: np.ndarray, target: np.ndarray, train_size=0.2, iter_size=0.5) -> Tuple[
         tuple, tuple, tuple]:
         assert train_size + iter_size < 1
         (train_data, test_iter_data) = elmUtils.splitData(data, target, 1 - train_size)
