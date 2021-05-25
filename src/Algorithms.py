@@ -131,7 +131,10 @@ class Algorithms():
     def make_model(self):
         model = models.vgg16(pretrained=False)  # 其实就是定位到第28层，对照着上面的key看就可以理解
         # model = models.vgg16(pretrained=False).features[:28]  # 其实就是定位到第28层，对照着上面的key看就可以理解
-        pre = torch.load(r'./vgg16-397923af.pth')
+        if torch.cuda.is_available():
+            pre = torch.load(r'./vgg16-397923af.pth')
+        else:
+            pre = torch.load(r'./vgg16-397923af.pth', map_location=torch.device('cpu'))
         model.load_state_dict(pre)
 
         # # 获取原始模型中去掉最后一个全连接层的classifier. 输出的是4096维特征
@@ -140,7 +143,8 @@ class Algorithms():
         # model.classifier = new_classifier
 
         model = model.eval()  # 一定要有这行，不然运算速度会变慢（要求梯度）而且会影响结果
-        model.cuda()  # 将模型从CPU发送到GPU,如果没有GPU则删除该行
+        if torch.cuda.is_available():
+            model.cuda()  # 将模型从CPU发送到GPU,如果没有GPU则删除该行
         return model
 
     # 特征提取
@@ -166,7 +170,7 @@ class Algorithms():
         else:
             return []
 
-    def RSM_SIFT(self, features_in, part):   # SIFT特征的RSM
+    def RSM_SIFT(self, features_in, part):  # SIFT特征的RSM
         '''
         :param features_in:  128维的SIFT特征向量
         :param part: SIFT特征降到维数，必须为8的整数倍
