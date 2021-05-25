@@ -41,13 +41,13 @@ class BvsbClassifier:
         assert self.elmc is None
         LOGGER.info("create and init OSELM")
         self.elmc = OSELM(self.X_train, self.Y_train, n_hidden)
-        self.Y_iter = self.elmc.binarizer.fit_transform(self.Y_iter)
+        self.Y_iter = self.elmc.binarizer.transform(self.Y_iter)
 
     """计算bvsb"""
 
     """获取分类正确的数据中bvsb靠前的数据索引"""
 
-    def argBvsbWithAccuracy(self, perData: np.ndarray) -> np.ndarray:
+    def argBvsbWithAccuracy(self, perData: np.ndarray) :
         argAcc = BvsbUtils.getAccIndex(self.Y_iter, perData)
         LOGGER.info(f'KNN与ELM匹配个数{argAcc.size}')
         if argAcc.size == 0:
