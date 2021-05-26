@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import os
 import cv2
@@ -67,6 +69,16 @@ class Pretreatment():
             result_npy = result.data.cpu().numpy()
             resultList.append(result_npy[0].tolist())
         return resultList
+
+    # 整体RSM，防止对每一个数据RSM之后，每个数据RMS获取的数据维度不同。
+    @staticmethod
+    def reduceFeatureWithRSM(data: np.ndarray, featureNumber: int) -> np.ndarray:
+        assert data.ndim == 2
+        assert data.shape[1] > featureNumber
+        index = np.arange(data.shape[1])
+        np.random.shuffle(index)
+        delete_index = index[0:data.shape[1] - featureNumber]
+        return np.delete(data, delete_index, axis=1)
 
 
 print('start extract features by VGG16')
