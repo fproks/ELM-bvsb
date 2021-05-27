@@ -115,13 +115,15 @@ class BvsbClassifier:
         return X_add, Y_add
 
     def updateDataWithoutKNN(self, preData: np.ndarray):
-        X_add, Y_add = self.getUpdateDateWithoutKNN(preData)
-        LOGGER.info(f'增加数据 {Y_add.size}')
-        self.X_train = np.r_[self.X_train, X_add]
-        self.Y_train = np.r_[self.Y_train, Y_add]
+        _data = self.getUpdateDateWithoutKNN(preData)
+        if _data is None:
+            return None
+        LOGGER.info(f'增加数据 {_data[1].size}')
+        self.X_train = np.r_[self.X_train, _data[0]]
+        self.Y_train = np.r_[self.Y_train, _data[1]]
         LOGGER.info(f'训练集现有数据 {self.Y_train.size}个')
         LOGGER.info(f'剩余迭代数据{self.X_iter.shape[0]}个')
-        return Y_add.size
+        return _data[1].size
 
     def score(self, x, y):
         _tmp = self.elmc.score(x, y)
@@ -167,6 +169,9 @@ class BvsbClassifier:
             print(f'---------------第{i}次训练-------------------')
             self.elmc.fit(self.X_train, self.Y_train)
             preData = self.elmc.predict_with_percentage(self.X_iter)
+            if preData is   None:
+                LOGGER.warn("未获取迭代数据，迭代训练结束")
+                break
             self.updateDataWithoutKNN(preData)
             LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
 
@@ -245,4 +250,7 @@ class BvsbUtils(object):
     @staticmethod
     def calculateBvsb(percentageData: np.ndarray) -> np.ndarray:
         p_temp = np.sort(percentageData)[:, -2:]
-        return p_temp[:, -1] - p_temp[:, -2]
+        if p_temp.shape[1]>=2:
+            return p_temp[:, -1] - p_temp[:, -2]
+        else:
+            return np.reshape(p_temp,(len(p_temp),))
