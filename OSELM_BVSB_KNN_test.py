@@ -1,25 +1,23 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from elm import BvsbClassifier, BvsbUtils
-from sklearn.model_selection import train_test_split
+import time
+
 from sklearn import datasets
-from elm import elmUtils
-import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-import time
+from elm import BvsbClassifier, BvsbUtils
+from elm import elmUtils
 
 print("---------OSELM-BVSB-KNN-----------")
 data = datasets.load_digits()
-stdc=StandardScaler()
+stdc = StandardScaler()
 
-data.data,data.target=stdc.fit_transform(data.data)/16.0, data.target
-data.data=BvsbUtils.dimensionReductionWithPCA(data.data,0.95)
-data.data,_,data.target,_=train_test_split(data.data,data.target,test_size=0.7)
-label_size=0.3
+data.data, data.target = stdc.fit_transform(data.data) / 16.0, data.target
+data.data = BvsbUtils.dimensionReductionWithPCA(data.data, 0.95)
+label_size = 0.3
 
-(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data,data.target, label_size, 0.2)
-iter_y=BvsbUtils.KNNClassifierResult(train_data[0],train_data[1],iter_data[0])
+(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.2)
+iter_y = BvsbUtils.KNNClassifierResult(train_data[0], train_data[1], iter_data[0])
 
 tic = time.perf_counter_ns()
 bvsbc = BvsbClassifier(train_data[0], train_data[1], iter_data[0], iter_y, test_data[0], test_data[1],
