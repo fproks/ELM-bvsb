@@ -35,3 +35,19 @@ class elmUtils(object):
         (iter_data, test_data) = elmUtils.splitData(test_iter_data[0], test_iter_data[1],
                                                     (1 - iter_size - train_size) / (1 - train_size), False)
         return train_data, iter_data, test_data
+
+    @staticmethod
+    def processingData(data, target, needOneHot=False, needLabelEncoder=False):
+        from sklearn.preprocessing import OneHotEncoder, StandardScaler, LabelEncoder
+        if needOneHot or data.dtype == np.object or data.dtype == np.string_:
+            LOGGER.warn(f'precessing data type is {data.dtype},start use OneHotEncoder')
+            data = OneHotEncoder().fit_transform(data)
+        if type(data) != np.ndarray:
+            LOGGER.warn(f"processing data type is {type(data)},use spare method")
+            data = StandardScaler(with_mean=False).fit_transform(data)
+        else:
+            data = StandardScaler().fit_transform(data)
+        if needLabelEncoder or target.dtype == np.object or target.dtype == np.string_:
+            LOGGER.warn(f'processing target type is {target.dtype},start ues LabelEncoder')
+            target = LabelEncoder().fit_transform(target)
+        return data, target
