@@ -9,7 +9,7 @@ from elm import BvsbClassifier, BvsbUtils
 from elm import elmUtils
 
 print("---------OSELM-BVSB-KNN-----------")
-data = datasets.load_digits()
+data = datasets.load_breast_cancer()
 stdc = StandardScaler()
 
 data.data, data.target = stdc.fit_transform(data.data) / 16.0, data.target

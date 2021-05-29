@@ -8,16 +8,16 @@ import time
 
 print("------------")
 # digits = load_digits()
-digits = datasets.load_breast_cancer()
-dgx = digits.data
+data = datasets.load_breast_cancer()
+
 stdc = StandardScaler()  # 均值归一化
 
-dgy = digits.target
-print("数据个数:%d" % dgy.size)
-dgx, dgy = stdc.fit_transform(digits.data / 16.0), digits.target
+
+data.data = stdc.fit_transform(data.data / 16.0)
 
 label_size=0.3
-(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(dgx,dgy, label_size, 0.2)
+
+(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data,data.target, label_size, 0.2)
 
 tic = time.perf_counter_ns()
 bvsbc = BvsbClassifier(train_data[0], train_data[1], iter_data[0], iter_data[1], test_data[0], test_data[1],

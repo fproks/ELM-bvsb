@@ -5,15 +5,13 @@ from sklearn import datasets
 import numpy as np
 
 stdsc = StandardScaler()
-digits = datasets.load_digits()
-dgx = digits.data
-dgy = digits.target
+data = datasets.load_digits()
 
-dgx = stdsc.fit_transform(dgx / 16.0)
-dgx_train, dgx_test, dgy_train, dgy_test = train_test_split(dgx, dgy, test_size=0.5)
+label_size=0.3
 
-inputs = dgx_train.shape[1]
-outputs = dgy.max() + 1
+data.data = stdsc.fit_transform(data.data / 16.0)
+dgx_train, dgx_test, dgy_train, dgy_test = train_test_split(data.data, data.target, test_size=1-label_size)
+
 oselm = OSELM(dgx_train, dgy_train, 1000,active_function="sigmoid")
 
 print(oselm.score(dgx_test, dgy_test))
