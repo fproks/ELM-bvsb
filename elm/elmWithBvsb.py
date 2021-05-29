@@ -1,4 +1,5 @@
 # -*- coding: utf8
+import numpy
 import numpy as np
 from typing import Tuple
 
@@ -47,7 +48,7 @@ class BvsbClassifier:
 
     """获取分类正确的数据中bvsb靠前的数据索引"""
 
-    def argBvsbWithAccuracy(self, perData: np.ndarray) :
+    def argBvsbWithAccuracy(self, perData: np.ndarray):
         argAcc = BvsbUtils.getAccIndex(self.Y_iter, perData)
         LOGGER.info(f'KNN与ELM匹配个数{argAcc.size}')
         if argAcc.size == 0:
@@ -169,7 +170,7 @@ class BvsbClassifier:
             print(f'---------------第{i}次训练-------------------')
             self.elmc.fit(self.X_train, self.Y_train)
             preData = self.elmc.predict_with_percentage(self.X_iter)
-            if preData is   None:
+            if preData is None:
                 LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
             self.updateDataWithoutKNN(preData)
@@ -220,6 +221,14 @@ class BvsbUtils(object):
     @staticmethod
     def dimensionReductionWithPCA(data: np.ndarray, n_components=None) -> np.ndarray:
         LOGGER.info("Dimensionality reduction  with PCA")
+        if type(data) != numpy.ndarray:
+            LOGGER.warn(f'PCA data type is {type(data)}')
+            if isinstance(n_components, float):
+                LOGGER.warn("data is sparse matrix, use integer n_components")
+                raise Exception("data is sparse matrix, please confirm n_components use integer")
+            from sklearn.decomposition import TruncatedSVD
+            pca = TruncatedSVD(n_components)
+            return pca.fit_transform(data)
 
         def _su(a: list, cp: float):
             p = 0
@@ -232,11 +241,10 @@ class BvsbUtils(object):
         import math
         if n_components is None: n_components = math.ceil(data.shape[1] / 2)
         assert isinstance(n_components, int) or isinstance(n_components, float)
-        pca = None
         if isinstance(n_components, int):
             if n_components > min(data.shape):
                 n_components = min(data.shape)
-                warnings.warn(f'n_components exceed max size,revise to ${n_components}')
+                warnings.warn(f"n_components exceed max size,revise to ${n_components}")
                 pca = PCA(n_components)
                 return pca.fit_transform(data)
         else:
@@ -250,7 +258,7 @@ class BvsbUtils(object):
     @staticmethod
     def calculateBvsb(percentageData: np.ndarray) -> np.ndarray:
         p_temp = np.sort(percentageData)[:, -2:]
-        if p_temp.shape[1]>=2:
+        if p_temp.shape[1] >= 2:
             return p_temp[:, -1] - p_temp[:, -2]
         else:
-            return np.reshape(p_temp,(len(p_temp),))
+            return np.reshape(p_temp, (len(p_temp),))
