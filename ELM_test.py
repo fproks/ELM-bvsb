@@ -1,22 +1,18 @@
 from elm import ELMClassifier
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from sklearn import datasets
-from elm import elmUtils
-
-# stdsc = StandardScaler()
-# digits = load_digits()
-digits = datasets.load_digits()
-# dgx = digits.data
-# dgy = digits.target
-# dgx, dgy = stdsc.fit_transform(digits.data / 16.0), digits.target
-# print(dgy.shape)
-# dgx_train, dgx_test, dgy_train, dgy_test = train_test_split(dgx, dgy, test_size=0.5)
+from elm import elmUtils,BvsbUtils
 
 
-(train_data, test_data) = elmUtils.splitData(digits.data, digits.target, 0.5)
+data = datasets.fetch_kddcup99()  # 稀疏矩阵,必须转换和降维
+# 数据集不全为数字时，needOneHot=True, target 不为数字时，needLabelEncoder=True
+data.data,data.target=elmUtils.processingData(data.data, data.target)
+data.data=BvsbUtils.dimensionReductionWithPCA(data.data,100) #kddcpu99 维度太高，必须进行降维
+print(data.data.shape)
+label_size=0.3
+
+(train_data, test_data) = elmUtils.splitData(data.data, data.target, 1-label_size)
 elmc = ELMClassifier(n_hidden=1000, activation_func='tanh', alpha=1.0, random_state=0)
 elmc.fit(train_data[0], train_data[1])
-# elmc.score(dgx_test,dgy_test)
 print(elmc.score(train_data[0], train_data[1]), elmc.score(test_data[0], test_data[1]))
+
+
