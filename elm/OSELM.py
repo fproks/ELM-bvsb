@@ -52,8 +52,8 @@ class OSELM(object):
     # https://blog.csdn.net/google19890102/article/details/45273309
     def train(self, features: np.ndarray, targets: np.ndarray):
         if targets.ndim == 1:
-            _targets = self.binarizer.transform(targets)
-            if _targets.shape[0] != self.outputs:
+            targets = self.binarizer.transform(targets)
+            if targets.shape[0] != self.outputs:
                 targets = transformYWithOutnumbers(targets, self.outputs)
         (numSamples, numOutputs) = targets.shape
         assert features.shape[0] == targets.shape[0]
