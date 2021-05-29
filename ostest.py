@@ -14,7 +14,7 @@ dgx_train, dgx_test, dgy_train, dgy_test = train_test_split(dgx, dgy, test_size=
 
 inputs = dgx_train.shape[1]
 outputs = dgy.max() + 1
-oselm = OSELM(dgx_train, dgy_train, 1000)
+oselm = OSELM(dgx_train, dgy_train, 1000,active_function="sigmoid")
 
 print(oselm.score(dgx_test, dgy_test))
 
