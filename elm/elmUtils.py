@@ -38,10 +38,10 @@ class elmUtils(object):
 
     @staticmethod
     def processingData(data, target, needOneHot=False, needLabelEncoder=False):
-        from sklearn.preprocessing import OneHotEncoder, StandardScaler, LabelEncoder
+        from sklearn.preprocessing import OrdinalEncoder, StandardScaler, LabelEncoder
         if needOneHot or data.dtype == np.object or data.dtype == np.string_:
             LOGGER.warn(f'precessing data type is {data.dtype},start use OneHotEncoder')
-            data = OneHotEncoder().fit_transform(data)
+            data = OrdinalEncoder().fit_transform(data)
         if type(data) != np.ndarray:
             LOGGER.warn(f"processing data type is {type(data)},use spare method")
             data = StandardScaler(with_mean=False).fit_transform(data)
