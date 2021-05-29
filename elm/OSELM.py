@@ -4,11 +4,10 @@ from sklearn.preprocessing import LabelBinarizer
 from config import LOGGER
 
 
-def sigmoidActFunc(features: np.ndarray, weights: np.ndarray, bias):
-    assert (features.shape[1] == weights.shape[1])
-    V = np.dot(features, np.transpose(weights)) + bias
-    H = 1 / (1 + np.exp(-V))
-    return H
+_internal_activation_funcs = {'sine': np.sin,
+                              'tanh': np.tanh,
+                              'sigmoid': (lambda x: 1.0 / (1.0 + np.exp(-x)))
+                              }
 
 
 def transformYWithOutnumbers(y: np.ndarray, outnumber: int) -> np.ndarray:
@@ -21,7 +20,7 @@ def transformYWithOutnumbers(y: np.ndarray, outnumber: int) -> np.ndarray:
 
 
 class OSELM(object):
-    def __init__(self, features: np.ndarray, targets: np.ndarray, numHiddenNeurons):
+    def __init__(self, features: np.ndarray, targets: np.ndarray, numHiddenNeurons, active_function="sigmoid"):
         self.binarizer = LabelBinarizer(-1, 1)
         assert features.ndim == 2
         self.inputs = features.shape[1]
@@ -33,17 +32,28 @@ class OSELM(object):
         self.bias = None
         self.beta = None
         self.M = None
+        if active_function in _internal_activation_funcs:
+            self.activate_function = _internal_activation_funcs[active_function]
+            LOGGER.info(f"activate function is {active_function}")
+        else:
+            self.activate_function = _internal_activation_funcs["sigmoid"]
+            LOGGER.warn("activate function is not in list, use sigmoid instead")
         self.initializePhase(features, targets)
 
     def calculateHiddenLayerActivation(self, features):
-        return sigmoidActFunc(features, self.inputWeights, self.bias)
+        V = np.dot(features, np.transpose(self.inputWeights)) + self.bias
+        if callable(self.activate_function):
+            return self.activate_function(V)
+        else:
+            LOGGER.warn("activate_func could not callable,use sigmoid instead")
+            return sigmoid(V)
 
     def initializePhase(self, features: np.ndarray, targets: np.ndarray):
         assert features.shape[0] == targets.shape[0]
         if targets.ndim == 1:
             targets = self.binarizer.fit_transform(targets)
         assert targets.shape[1] == self.outputs
-        self.inputWeights = np.random.random((self.numHiddenNeurons, self.inputs))*2-1
+        self.inputWeights = np.random.random((self.numHiddenNeurons, self.inputs)) * 2 - 1
         self.bias = np.random.random((1, self.numHiddenNeurons)) * 2 - 1
         H0 = self.calculateHiddenLayerActivation(features)
         self.M = pinv(np.dot(np.transpose(H0), H0))
@@ -57,7 +67,7 @@ class OSELM(object):
                 targets = transformYWithOutnumbers(targets, self.outputs)
         (numSamples, numOutputs) = targets.shape
         assert features.shape[0] == targets.shape[0]
-        assert numOutputs==self.outputs
+        assert numOutputs == self.outputs
         H = self.calculateHiddenLayerActivation(features)
         Ht = np.transpose(H)
         try:
