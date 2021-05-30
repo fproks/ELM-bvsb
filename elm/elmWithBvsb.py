@@ -38,7 +38,7 @@ class BvsbClassifier:
         self.elmc = ELMClassifier(n_hidden=n_hidden, activation_func=activation_func, alpha=alpha,
                                   random_state=random_state)
 
-    def createOSELM(self, n_hidden):
+    def createOSELM(self, n_hidden,active_function="sigmoid"):
         assert self.elmc is None
         LOGGER.info("create and init OSELM")
         self.elmc = OSELM(self.X_train, self.Y_train, n_hidden)
@@ -188,6 +188,7 @@ class BvsbClassifier:
                 LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
             LOGGER.info(f'第{i}次训练时进行训练的数据个数:{_data[1].size}')
+            print(_data[1].shape)
             self.elmc.train(_data[0], _data[1])
             LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
