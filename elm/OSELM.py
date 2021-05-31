@@ -51,7 +51,7 @@ class OSELM(object):
     def initializePhase(self, features: np.ndarray, targets: np.ndarray):
         assert features.shape[0] == targets.shape[0]
         if targets.ndim == 1:
-            targets = self.binarizer.fit_transform(targets)
+            targets = self.binarizer.transform(targets)
         assert targets.shape[1] == self.outputs
         self.inputWeights = np.random.random((self.numHiddenNeurons, self.inputs)) * 2 - 1
         self.bias = np.random.random((1, self.numHiddenNeurons)) * 2 - 1
