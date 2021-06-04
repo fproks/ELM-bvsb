@@ -46,12 +46,12 @@ class OSELM(object):
             return self.activate_function(V)
         else:
             LOGGER.warn("activate_func could not callable,use sigmoid instead")
-            return sigmoid(V)
+            return _internal_activation_funcs["sigmoid"](V)
 
     def initializePhase(self, features: np.ndarray, targets: np.ndarray):
         assert features.shape[0] == targets.shape[0]
         if targets.ndim == 1:
-            targets = self.binarizer.fit_transform(targets)
+            targets = self.binarizer.transform(targets)
         assert targets.shape[1] == self.outputs
         self.inputWeights = np.random.random((self.numHiddenNeurons, self.inputs)) * 2 - 1
         self.bias = np.random.random((1, self.numHiddenNeurons)) * 2 - 1
@@ -63,7 +63,8 @@ class OSELM(object):
     def train(self, features: np.ndarray, targets: np.ndarray):
         if targets.ndim == 1:
             targets = self.binarizer.transform(targets)
-            if targets.shape[0] != self.outputs:
+            if targets.shape[1] != self.outputs:
+                print(targets.shape)
                 targets = transformYWithOutnumbers(targets, self.outputs)
         (numSamples, numOutputs) = targets.shape
         assert features.shape[0] == targets.shape[0]

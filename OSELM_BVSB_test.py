@@ -7,10 +7,10 @@ from sklearn.preprocessing import StandardScaler
 import time
 
 print("---------OSELM-BVSB-----------")
-data = datasets.load_digits()
+data = datasets.load_iris()
 print(f'数据集大小问{data.target.size}')
 data.data=StandardScaler().fit_transform(data.data)
-(train, iter, test) = elmUtils.splitDataWithIter(BvsbUtils.dimensionReductionWithPCA(data.data, 0.95), data.target,
+(train, iter, test) = elmUtils.splitDataWithIter(data.data, data.target,
                                                  0.2, 0.3)
 print(f'训练集大小为{train[1].size}')
 print(f'迭代训练集大小为{iter[1].size}')

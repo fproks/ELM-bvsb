@@ -38,11 +38,11 @@ class BvsbClassifier:
         self.elmc = ELMClassifier(n_hidden=n_hidden, activation_func=activation_func, alpha=alpha,
                                   random_state=random_state)
 
-    def createOSELM(self, n_hidden):
+    def createOSELM(self, n_hidden, active_function="sigmoid"):
         assert self.elmc is None
         LOGGER.info("create and init OSELM")
         self.elmc = OSELM(self.X_train, self.Y_train, n_hidden)
-        self.Y_iter = self.elmc.binarizer.transform(self.Y_iter)
+        # self.Y_iter = self.elmc.binarizer.transform(self.Y_iter)
 
     """计算bvsb"""
 
@@ -64,21 +64,30 @@ class BvsbClassifier:
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
 
-    def getUpdateData(self, preData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def getUpdateData(self, predData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if self._upperLimit <= 0:
             self._iter_continue = False
             return None
-        assert preData.ndim != 1
-        argBvab = self.argBvsbWithAccuracy(preData)
-        if argBvab.size < (self.perNum * .01):
+        assert predData.ndim != 1
+        preClass = self.elmc.binarizer.inverse_transform(predData)
+        argAcc = np.argwhere(self.Y_iter == preClass).flatten().astype(int)  # 相同的索引
+        accPreData = predData[argAcc]
+        tmp = np.sort(accPreData)
+        if tmp.shape[1] >= 2:
+            bvsb = tmp[:, -1] - tmp[:, -2]
+        else:
+            bvsb = tmp
+        bvsbArg = np.argsort(bvsb)  # bvsb索引
+        _iterNum = int(min(self.perNum, self._upperLimit))
+        real_index = argAcc[bvsbArg[-_iterNum:]]
+        if real_index.size < (self.perNum * 0.1):
             self._iter_continue = False
             return None
-        self._upperLimit -= argBvab.size
-        X_up = self.X_iter[argBvab]
-        Y_up = self.Y_iter[argBvab]
-        LOGGER.info(f'获取再次迭代数据{len(Y_up)}个')
-        self.X_iter = np.delete(self.X_iter, argBvab, axis=0)
-        self.Y_iter = np.delete(self.Y_iter, argBvab, axis=0)
+        self._upperLimit -= real_index.size
+        X_up = self.X_iter[real_index]
+        Y_up = self.Y_iter[real_index]
+        self.X_iter = np.delete(self.X_iter, real_index, axis=0)
+        self.Y_iter = np.delete(self.Y_iter, real_index, axis=0)
         return X_up, Y_up
 
     def updateTrainData(self, preData: np.ndarray):
@@ -188,6 +197,7 @@ class BvsbClassifier:
                 LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
             LOGGER.info(f'第{i}次训练时进行训练的数据个数:{_data[1].size}')
+            print(_data[1].shape)
             self.elmc.train(_data[0], _data[1])
             LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 

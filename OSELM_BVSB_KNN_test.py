@@ -9,20 +9,20 @@ from elm import BvsbClassifier, BvsbUtils
 from elm import elmUtils
 
 print("---------OSELM-BVSB-KNN-----------")
-data = datasets.load_breast_cancer()
+data = datasets.load_digits()
 stdc = StandardScaler()
 
-data.data, data.target = stdc.fit_transform(data.data) / 16.0, data.target
-data.data = BvsbUtils.dimensionReductionWithPCA(data.data, 0.95)
+#data.data, data.target = stdc.fit_transform(data.data) / 16.0, data.target
+#data.data = BvsbUtils.dimensionReductionWithPCA(data.data, 0.95)
 label_size = 0.3
 
-(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.2)
+(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.3)
 iter_y = BvsbUtils.KNNClassifierResult(train_data[0], train_data[1], iter_data[0])
 
 tic = time.perf_counter_ns()
 bvsbc = BvsbClassifier(train_data[0], train_data[1], iter_data[0], iter_y, test_data[0], test_data[1],
-                       iterNum=0.1)
-bvsbc.createOSELM(n_hidden=1000)
+                       iterNum=0.2)
+bvsbc.createOSELM(n_hidden=1000,active_function="sigmoid")
 bvsbc.trainOSELMWithBvsb()
 toc = time.perf_counter_ns()
 
