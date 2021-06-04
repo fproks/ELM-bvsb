@@ -26,13 +26,14 @@ IMAGE_SIZE = 244
 
 class Pretreatment():
     @staticmethod
-    def readGrayImageToDATA(rootPath: str) -> Tuple[list, list]:
+    def readGrayImageToDATA(rootPath: str,image_size=IMAGE_SIZE) -> Tuple[list, list]:
         imageList = Pretreatment._getfileList(rootPath)
         dataList = []
         targetList = []
         for img in imageList:
             _data = cv2.imread(img)
-            _data = cv2.resize(_data, (IMAGE_SIZE, IMAGE_SIZE))
+            if image_size is not None:
+                _data = cv2.resize(_data, (image_size, image_size))
             dataList.append(_data)
             filename = os.path.basename(img)
             targetList.append(int(filename.split("_")[0]))
@@ -81,12 +82,19 @@ class Pretreatment():
         return np.delete(data, delete_index, axis=1)
 
 
-print('start extract features by VGG16')
-[a, b] = Pretreatment.readGrayImageToDATA("../image/source")
-print('得到图像数据,开始特征提取')
-data = Pretreatment.featureExtractionVGG(a)
-print('特征提取完成，开始保存')
-data = np.array(data)
-target = np.array(b)
-sio.savemat('vggdata.mat', {'data': data, 'target': target})
-print("特征数据保存为vggdata.mat")
+
+
+
+[a,b]=Pretreatment.readGrayImageToDATA(r"F:\dataset4\flowers17\flowers17\test",image_size=500)
+print(len(a))
+print(len(b))
+
+# print('start extract features by VGG16')
+# [a, b] = Pretreatment.readGrayImageToDATA("../image/source")
+# print('得到图像数据,开始特征提取')
+# data = Pretreatment.featureExtractionVGG(a)
+# print('特征提取完成，开始保存')
+# data = np.array(data)
+# target = np.array(b)
+# sio.savemat('vggdata.mat', {'data': data, 'target': target})
+# print("特征数据保存为vggdata.mat")
