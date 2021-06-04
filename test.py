@@ -12,6 +12,7 @@ from sklearn.preprocessing import StandardScaler
 import time
 import torch
 import numpy as np
+#此代码-oselm_bvsb_knn的
 
 acc_rem = []  #初始化精度列表
 time_rem = []   #初始化时间列表
@@ -19,12 +20,10 @@ time_rem = []   #初始化时间列表
 for ii in range(10):
 
     print("---------OSELM-BVSB-KNN-----------")
-    #data = datasets.fetch_olivetti_faces()
-
-
+    data = datasets.fetch_olivetti_faces()
     #data = sklearn.datasets.fetch_covtype()
     #data = datasets.load_iris()
-    data = datasets.load_digits()
+    #data = datasets.load_digits()
     #ata = datasets.load_wine()#############################################有问题，跑不了
     #data = datasets.load_breast_cancer()
     stdc=StandardScaler()
@@ -55,8 +54,10 @@ for ii in range(10):
 for i in acc_rem:
     print(f'每一次的精度：{i*100:0.2f}',)   #打印每次精度
 acc_mean = np.mean(acc_rem) #求出平均精度
-print('平均精度：',acc_mean) #打印平均精度
+print('平均精度：{i*100:0.2f}',acc_mean) #打印平均精度
+for i in time_rem:
+    print(f'每一次的时间：{i*100:0.2f}',)   #打印每次时间
 print('每一次的运行时间：',time_rem) #打印每次时间
 time_mean = np.mean(time_rem)   #求出平均时间
-print('平均精度：',time_mean)    #打印平均时间
+print('平均时间：',time_mean)    #打印平均时间
 

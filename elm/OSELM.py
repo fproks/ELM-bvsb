@@ -4,9 +4,13 @@ from sklearn.preprocessing import LabelBinarizer
 from config import LOGGER
 
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
 _internal_activation_funcs = {'sine': np.sin,
                               'tanh': np.tanh,
-                              'sigmoid': (lambda x: 1.0 / (1.0 + np.exp(-x)))
+                              'sigmoid': sigmoid
                               }
 
 
