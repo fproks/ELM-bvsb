@@ -9,7 +9,9 @@ from elm import BvsbClassifier, BvsbUtils
 from elm import elmUtils
 
 print("---------OSELM-BVSB-KNN-----------")
-data = datasets.load_digits()
+#data = datasets.load_digits()
+data=elmUtils.readDataFileToData("data/balance-scale.data", targetIndex=0)
+#data=elmUtils.readDataFileToData("./data/abalone.data", targetIndex=-1, transformIndex=[0])
 stdc = StandardScaler()
 
 #data.data, data.target = stdc.fit_transform(data.data) / 16.0, data.target
