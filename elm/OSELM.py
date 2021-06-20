@@ -64,7 +64,7 @@ class OSELM(object):
         self.beta = np.dot(pinv(H0), targets)
 
     # https://blog.csdn.net/google19890102/article/details/45273309
-    def train(self, features: np.ndarray, targets: np.ndarray):
+    def fit(self, features: np.ndarray, targets: np.ndarray):
         if targets.ndim == 1:
             targets = self.binarizer.transform(targets)
             if targets.shape[1] != self.outputs:

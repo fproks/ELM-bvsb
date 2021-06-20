@@ -90,6 +90,29 @@ class BvsbClassifier:
         self.Y_iter = np.delete(self.Y_iter, real_index, axis=0)
         return X_up, Y_up
 
+    def getUpdataWithoutBVSB(self,predata:np.ndarray)->Tuple[np.ndarray,np.ndarray]:
+        if self._upperLimit<=0:
+            self._iter_continue=False
+            return None
+        assert  predata.ndim!=1
+        preClass=self.elmc.binarizer.inverse_transform(predata)
+        argAcc = np.argwhere(self.Y_iter == preClass).flatten().astype(int)  # 相同的索引
+        accPreData=predata[argAcc]
+        tmp=np.sort(accPreData)[:,-1]
+        sortArg=np.argsort(tmp)
+        _iterNum=int(min(self.perNum,self._upperLimit))
+        real_index=argAcc[sortArg[-_iterNum:]]
+        if real_index.size<(self.perNum*0.1):
+            self._iter_continue=False
+            return None
+        self._upperLimit-=real_index.size
+        X_up=self.X_iter[real_index]
+        Y_up=self.Y_iter[real_index]
+        self.X_iter=np.delete(self.X_iter,real_index,axis=0)
+        self.Y_iter=np.delete(self.Y_iter,real_index,axis=0)
+        return X_up,Y_up
+
+
     def updateTrainData(self, preData: np.ndarray):
         _data = self.getUpdateData(preData)
         if _data is None:
@@ -168,7 +191,7 @@ class BvsbClassifier:
             if _data is None:
                 LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
-            self.elmc.train(_data[0], _data[1])
+            self.elmc.fit(_data[0], _data[1])
             LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.elmc.score(self.X_test, self.Y_test)}')
 
     def trainELMWithoutKNN(self):
@@ -198,7 +221,23 @@ class BvsbClassifier:
                 break
             LOGGER.info(f'第{i}次训练时进行训练的数据个数:{_data[1].size}')
             print(_data[1].shape)
-            self.elmc.train(_data[0], _data[1])
+            self.elmc.fit(_data[0], _data[1])
+            LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
+
+    def trainOSELMWithKNNButBvsb(self):
+        i=0
+        print("----------------------OSELM WITH KNN BUT BVSB---------------------------")
+        while self._iter_continue:
+            i=i+1
+            print(f'---------------第{i}次训练-------------------')
+            predict = self.elmc.predict(self.X_iter)
+            _data=self.getUpdataWithoutBVSB(predict)
+            if _data is None:
+                LOGGER.warn("未获取迭代数据，迭代训练结束")
+                break
+            LOGGER.info(f'第{i}次训练时进行训练的数据个数:{_data[1].size}')
+            print(_data[1].shape)
+            self.elmc.fit(_data[0], _data[1])
             LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
 
@@ -210,6 +249,13 @@ class BvsbUtils(object):
         nbr = neighbors.KNeighborsClassifier(K)
         nbr.fit(x_train, y_train)
         return nbr.predict(x_test)
+
+    @staticmethod
+    def SVMClassifierResult(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray, K=20):
+        from sklearn.svm import SVC
+        svm=SVC()
+        svm.fit(x_train,y_train)
+        return svm.predict(x_test)
 
     @staticmethod
     def classPrediction(perData: np.ndarray, Y: np.ndarray):

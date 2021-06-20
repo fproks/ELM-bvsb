@@ -4,7 +4,7 @@ import time
 
 from sklearn import datasets
 from sklearn.preprocessing import StandardScaler
-
+from sklearn.svm import SVC
 from elm import BvsbClassifier, BvsbUtils
 from elm import elmUtils
 
@@ -19,7 +19,7 @@ stdc = StandardScaler()
 label_size = 0.3
 
 (train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.3)
-iter_y = BvsbUtils.KNNClassifierResult(train_data[0], train_data[1], iter_data[0])
+iter_y = BvsbUtils.SVMClassifierResult(train_data[0], train_data[1], iter_data[0])
 
 tic = time.perf_counter_ns()
 bvsbc = BvsbClassifier(train_data[0], train_data[1], iter_data[0], iter_y, test_data[0], test_data[1],

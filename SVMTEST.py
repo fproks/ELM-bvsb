@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.svm import SVC
 from elm import BvsbClassifier, BvsbUtils
 from sklearn.model_selection import train_test_split
@@ -15,8 +16,8 @@ stdsc = StandardScaler()
 """
 covtype.data 数据规模过大，(58万) 不要使用30%进行分类
 """
-data=elmUtils.readDataFileToData("data/abalone.data", targetIndex=-1, transformIndex=[0])
-#data=elmUtils.readDataFileToData("./data/balance-scale.data", targetIndex=0)
+#data=elmUtils.readDataFileToData("data/abalone.data", targetIndex=-1, transformIndex=[0])
+data=elmUtils.readDataFileToData("./data/balance-scale.data", targetIndex=0)
 #data=elmUtils.readDataFileToData("./data/covtype.data",targetIndex=-1,dtype=float)
 #data=elmUtils.readDataFileToData("./data/ecoli.data",targetIndex=-1,deleteIndex=[0],delimiter=None)
 #data=elmUtils.readDataFileToData("./data/ionosphere.data",targetIndex=-1)
@@ -32,8 +33,14 @@ label_size = 0.3
 t1 = time.perf_counter_ns()
 
 train, test = elmUtils.splitData(data.data, data.target, 1 - label_size, True)
-svm = SVC()
+svm = SVC(probability=True)
 svm.fit(train[0], train[1])
+res=svm.predict_proba(test[0])
+argp=np.argmax(res,axis=1)
+p=svm.predict(test[0])
+from sklearn.metrics import accuracy_score
+print(accuracy_score(test[1],argp))
+print(accuracy_score(test[1],p))
 tmp_acc = svm.score(test[0], test[1])
 print(f'SVM 正确率为: {tmp_acc}')
 
