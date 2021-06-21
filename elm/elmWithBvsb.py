@@ -79,11 +79,13 @@ class BvsbClassifier:
             bvsb = tmp
         bvsbArg = np.argsort(bvsb)  # bvsb索引
         _iterNum = int(min(self.perNum, self._upperLimit))
-        real_index = argAcc[bvsbArg[-_iterNum:]]
+        real_index = argAcc[bvsbArg[-_iterNum:]].flatten().astype(int)
         if real_index.size < (self.perNum * 0.1):
             self._iter_continue = False
             return None
         self._upperLimit -= real_index.size
+        if len(real_index)==1:
+            print("-------------------------------------------------------")
         X_up = self.X_iter[real_index]
         Y_up = self.Y_iter[real_index]
         self.X_iter = np.delete(self.X_iter, real_index, axis=0)
@@ -246,6 +248,8 @@ class BvsbUtils(object):
     @staticmethod
     def KNNClassifierResult(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray, K=20):
         from sklearn import neighbors
+        if len(y_train)<K:
+            K=len(y_train)-1
         nbr = neighbors.KNeighborsClassifier(K)
         nbr.fit(x_train, y_train)
         return nbr.predict(x_test)
