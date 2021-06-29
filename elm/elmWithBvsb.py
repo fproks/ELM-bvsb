@@ -64,7 +64,7 @@ class BvsbClassifier:
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
 
-    def getUpdateData(self, predData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def getUpdateDataWithBvsb(self, predData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if self._upperLimit <= 0:
             self._iter_continue = False
             return None
@@ -114,8 +114,8 @@ class BvsbClassifier:
         self.Y_iter = np.delete(self.Y_iter, real_index, axis=0)
         return X_up, Y_up
 
-    def updateTrainData(self, preData: np.ndarray):
-        _data = self.getUpdateData(preData)
+    def updateTrainDataWithBvsb(self, preData: np.ndarray):
+        _data = self.getUpdateDataWithBvsb(preData)
         if _data is None:
             return None
         return self.mergeTrainData(_data)
@@ -191,7 +191,7 @@ class BvsbClassifier:
             predict = self.elmc.predict(self.X_iter)
             score = self.elmc.scoreWithPredict(self.Y_iter, predict)
             LOGGER.info(f'第{i}次迭代后迭代数据集的正确率为{score}')
-            _data = self.getUpdateData(predict)
+            _data = self.getUpdateDataWithBvsb(predict)
             if _data is None:
                 LOGGER.warn("未获取迭代数据，迭代训练结束")
                 break
