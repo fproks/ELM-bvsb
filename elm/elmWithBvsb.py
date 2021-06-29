@@ -178,7 +178,7 @@ class BvsbClassifier:
             score = self.elmc.scoreWithPredict(self.Y_iter, preData)
             LOGGER.info(f'第{i}次迭代后迭代数据集的正确率为{score}')
             LOGGER.debug(f'perData 类型为:{type(preData)}')
-            self.updateTrainData(preData)
+            self.updateTrainDataWithBvsb(preData)
             LOGGER.debug(f'第{i}次迭代训练后测试集的分类正确率为{self.score(self.X_test, self.Y_test)}')
 
     def trainOSELMWithBvsb(self):
