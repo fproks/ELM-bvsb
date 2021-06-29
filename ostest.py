@@ -5,9 +5,9 @@ from sklearn import datasets
 import numpy as np
 
 stdsc = StandardScaler()
-data = datasets.fetch_kddcup99()
+data=elmUtils.readDataFileToData("data/zoo.data", targetIndex=0)
 
-label_size=0.3
+label_size=0.05
 
 
 data.data,data.target=elmUtils.processingData(data.data,data.target)

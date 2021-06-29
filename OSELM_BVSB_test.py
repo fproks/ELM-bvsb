@@ -7,11 +7,11 @@ from sklearn.preprocessing import StandardScaler
 import time
 
 print("---------OSELM-BVSB-----------")
-data=elmUtils.readDataFileToData("data/balance-scale.data", targetIndex=0)
+data=elmUtils.readDataFileToData("data/zoo.data", targetIndex=0)
 print(f'数据集大小问{data.target.size}')
 data.data=StandardScaler().fit_transform(data.data)
 (train, iter, test) = elmUtils.splitDataWithIter(data.data, data.target,
-                                                 0.3, 0.3)
+                                                 0.05, 0.3)
 print(f'训练集大小为{train[1].size}')
 print(f'迭代训练集大小为{iter[1].size}')
 print(f'测试集大小为{test[1].size}')
