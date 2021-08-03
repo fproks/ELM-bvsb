@@ -64,7 +64,7 @@ class BvsbClassifier:
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
 
-    def getUpDataIndexWithBvsb(self, predData: np.ndarray) -> np.ndarray:
+    def getUpDataIndexWithBvsb(self, predData: np.ndarray,limit=0) -> np.ndarray:
         assert predData.ndim != 1
         preClass = self.elmc.binarizer.inverse_transform(predData)
         argAcc = np.argwhere(self.Y_iter == preClass).flatten().astype(int)  # 相同的索引
@@ -73,17 +73,18 @@ class BvsbClassifier:
         if tmp.shape[1] >= 2:
             bvsb = tmp[:, -1] - tmp[:, -2]
         else:
-            bvsb = tmp
+            bvsb = tmp.flatten()
         bvsbArg = np.argsort(bvsb)  # bvsb索引
-        _iterNum = int(min(self.perNum, self._upperLimit))
-        real_index = argAcc[bvsbArg[-_iterNum:]].flatten().astype(int)
+        if limit==0:
+            limit=len(bvsbArg)
+        real_index = argAcc[bvsbArg[-limit:]].flatten().astype(int)
         return real_index
 
     def getUpdateDataWithBvsb(self, predData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if self._upperLimit <= 0:
             self._iter_continue = False
             return None
-        real_index = self.getUpDataIndexWithBvsb(predData)
+        real_index = self.getUpDataIndexWithBvsb(predData,limit= int(min(self.perNum, self._upperLimit)))
         if real_index.size < (self.perNum * 0.1):
             self._iter_continue = False
             return None
@@ -172,11 +173,11 @@ class BvsbClassifier:
         if _tmp > self._score: self._score = _tmp
         return self._score
 
-    def fitAndGetUpdateDataIndex(self):
+    def fitAndGetUpdateDataIndex(self,limit=0):
         self.elmc.fit(self.X_train, self.Y_train)
         preData = self.elmc.predict_with_percentage(self.X_iter)
         LOGGER.debug(f'perData 类型为:{type(preData)}')
-        _data = self.getUpDataIndexWithBvsb(preData)
+        _data = self.getUpDataIndexWithBvsb(preData,limit=limit)
         return _data
 
     def trainELMWithBvsb(self):

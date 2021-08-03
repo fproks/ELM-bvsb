@@ -10,8 +10,8 @@ from elm import BvsbClassifier, BvsbUtils
 from elm import elmUtils
 
 print("---------OSELM-BVSB-KNN-----------")
-#data = datasets.load_digits()
-data=elmUtils.readDataFileToData("data/zoo.data", targetIndex=0)
+data = datasets.load_digits()
+#data=elmUtils.readDataFileToData("data/zoo.data", targetIndex=0)
 #data=elmUtils.readDataFileToData("./data/abalone.data", targetIndex=-1, transformIndex=[0])
 stdc = StandardScaler()
 
