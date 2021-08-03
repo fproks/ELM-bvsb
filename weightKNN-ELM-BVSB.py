@@ -24,13 +24,14 @@ data.target = LabelEncoder().fit_transform(data.target)
 (train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.72)
 
 bvsbc = None
-hidden_nums = 1000  #隐层结点数量
-select_h=120 # 选出置信度高的前h个样本
+hidden_nums = 1000  # 隐层结点数量
+select_h = 120  # 选出置信度高的前h个样本
 for ii in range(10):
     X_train = train_data[0].copy()
     Y_train = train_data[1].copy()
     X_iter = iter_data[0].copy()
     len_iter = len(X_iter)
+    i = 1
     while len(X_iter) > (len_iter / 2):
         nbr = BvsbUtils.KNNClassifier(X_train, Y_train)  # KNN
         # iter_y=nbr.predict(X_iter)
@@ -44,17 +45,16 @@ for ii in range(10):
         len_curr_iter = len(sort_h_y)
         bvsbc = BvsbClassifier(X_train, Y_train, sort_h_data, sort_h_y, test_data[0], test_data[1], iterNum=0.1)
         bvsbc.createELM(n_hidden=hidden_nums, activation_func="tanh", alpha=1.0, random_state=0)
-        _data_index = bvsbc.fitAndGetUpdateDataIndex(limit=int(0.2*len_curr_iter))
+        _data_index = bvsbc.fitAndGetUpdateDataIndex(limit=int(0.2 * len_curr_iter))
         if len(_data_index) != 0:
-            print(len(_data_index))
             X_train = np.r_[bvsbc.X_train, sort_h_data[_data_index]]
             Y_train = np.r_[bvsbc.Y_train, sort_h_y[_data_index]]
-            X_iter=np.delete(X_iter,iter_index[_data_index],axis=0)
+            X_iter = np.delete(X_iter, iter_index[_data_index], axis=0)
         else:
             print("没有数据被加入训练集，训练结束")
             break
-        print(len(X_iter))
-        print(f"第{ii} 次迭代 正确率为:{bvsbc.score(test_data[0], test_data[1])}")
+        print(f"第{ii} 次训练,第{i}次迭代: 正确率为:{bvsbc.score(test_data[0], test_data[1])}")
+        i += 1
     acc_temp = bvsbc.score(test_data[0], test_data[1])  # 记录每次的精度
     acc_rem.append(acc_temp)  # 将每次的精度存入列表
 
