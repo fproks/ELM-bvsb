@@ -1,17 +1,4 @@
-from elm import BvsbClassifier, BvsbUtils
-from sklearn.model_selection import train_test_split
 
-from sklearn.preprocessing import StandardScaler
-
-from elm import BvsbClassifier, BvsbUtils
-from sklearn.model_selection import train_test_split
-
-from sklearn.preprocessing import StandardScaler
-
-from elm import BvsbClassifier, BvsbUtils
-from sklearn.model_selection import train_test_split
-
-from sklearn.preprocessing import StandardScaler
 from elm import ELMClassifier
 from sklearn import datasets
 from elm import elmUtils,BvsbUtils
@@ -38,10 +25,4 @@ elmc = ELMClassifier(n_hidden=1000, activation_func='tanh', alpha=1.0, random_st
 elmc.fit(train_data[0], train_data[1])
 print(elmc.score(test_data[0], test_data[1]))
 
-#data = datasets.fetch_olivetti_faces()  # 这是第1个
-# data = sklearn.datasets.fetch_covtype()#这是第2个
-# data = datasets.load_iris()#这是第3个
-# data = datasets.load_digits()#这是第4个  再前面加#屏蔽语句，把运行的打开
-data = datasets.load_wine()#这是第5个
-# data = datasets.load_breast_cancer()#这是第6个
 

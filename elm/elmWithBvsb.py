@@ -64,10 +64,7 @@ class BvsbClassifier:
 
     """获取下次需要进行训练的数据，并从迭代集合中删除他们"""
 
-    def getUpdateDataWithBvsb(self, predData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        if self._upperLimit <= 0:
-            self._iter_continue = False
-            return None
+    def getUpDataIndexWithBvsb(self, predData: np.ndarray,limit=0) -> np.ndarray:
         assert predData.ndim != 1
         preClass = self.elmc.binarizer.inverse_transform(predData)
         argAcc = np.argwhere(self.Y_iter == preClass).flatten().astype(int)  # 相同的索引
@@ -76,10 +73,18 @@ class BvsbClassifier:
         if tmp.shape[1] >= 2:
             bvsb = tmp[:, -1] - tmp[:, -2]
         else:
-            bvsb = tmp
+            bvsb = tmp.flatten()
         bvsbArg = np.argsort(bvsb)  # bvsb索引
-        _iterNum = int(min(self.perNum, self._upperLimit))
-        real_index = argAcc[bvsbArg[-_iterNum:]].flatten().astype(int)
+        if limit==0:
+            limit=len(bvsbArg)
+        real_index = argAcc[bvsbArg[-limit:]].flatten().astype(int)
+        return real_index
+
+    def getUpdateDataWithBvsb(self, predData: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        if self._upperLimit <= 0:
+            self._iter_continue = False
+            return None
+        real_index = self.getUpDataIndexWithBvsb(predData,limit= int(min(self.perNum, self._upperLimit)))
         if real_index.size < (self.perNum * 0.1):
             self._iter_continue = False
             return None
@@ -117,6 +122,7 @@ class BvsbClassifier:
     def updateTrainDataWithBvsb(self, preData: np.ndarray):
         _data = self.getUpdateDataWithBvsb(preData)
         if _data is None:
+            LOGGER.warn("getUpdateTrain is None")
             return None
         return self.mergeTrainData(_data)
 
@@ -166,6 +172,13 @@ class BvsbClassifier:
         _tmp = self.elmc.score(x, y)
         if _tmp > self._score: self._score = _tmp
         return self._score
+
+    def fitAndGetUpdateDataIndex(self,limit=0):
+        self.elmc.fit(self.X_train, self.Y_train)
+        preData = self.elmc.predict_with_percentage(self.X_iter)
+        LOGGER.debug(f'perData 类型为:{type(preData)}')
+        _data = self.getUpDataIndexWithBvsb(preData,limit=limit)
+        return _data
 
     def trainELMWithBvsb(self):
         i = 0
@@ -263,15 +276,23 @@ class BvsbClassifier:
 
 
 class BvsbUtils(object):
-
     @staticmethod
-    def KNNClassifierResult(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray, K=20):
+    def KNNClassifier(x_train: np.ndarray, y_train: np.ndarray, K=20):
         from sklearn import neighbors
         if len(y_train) < K:
             K = len(y_train) - 1
         nbr = neighbors.KNeighborsClassifier(K)
         nbr.fit(x_train, y_train)
+        return nbr
+
+    @staticmethod
+    def KNNClassifierResult(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray, K=20):
+        nbr = BvsbUtils.KNNClassifier(x_train, y_train, K)
         return nbr.predict(x_test)
+
+    @staticmethod
+    def KNNClassifierProbaRestult(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray, K=20):
+        return BvsbUtils.KNNClassifier(x_train, y_train, K).predict_proba(x_test)
 
     @staticmethod
     def SVMClassifierResult(x_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray, K=20):
