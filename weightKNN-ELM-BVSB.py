@@ -18,15 +18,14 @@ print("-----------------以下为ELM-BVSB-KNN加权算法（10次）------------
 stdc = StandardScaler()
 label_size = 0.08  # 已标记样本比例为10%
 acc_rem = []  # 初始化精度列表
-data.data = stdc.fit_transform(data.data / 16.0)
+#data.data = stdc.fit_transform(data.data / 16.0)
 data.target = LabelEncoder().fit_transform(data.target)
-
-(train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.72)
 
 bvsbc = None
 hidden_nums = 1000  # 隐层结点数量
 select_h = 120  # 选出置信度高的前h个样本
 for ii in range(10):
+    (train_data, iter_data, test_data) = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.72)
     X_train = train_data[0].copy()
     Y_train = train_data[1].copy()
     X_iter = iter_data[0].copy()
