@@ -1,3 +1,8 @@
+'''
+@created: 2021.05.25
+@author: linhos
+description: reformatted data for train and test
+'''
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -69,7 +74,6 @@ class elmUtils(object):
             LOGGER.warn(f'processing target type is {target.dtype},start ues LabelEncoder')
             target = LabelEncoder().fit_transform(target)
         return data, target
-
 
     @staticmethod
     def readDataFileToData(filepath, targetIndex, transformIndex=[], deleteIndex=[], delimiter=",", dtype=np.str_,
