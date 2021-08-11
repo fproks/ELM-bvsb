@@ -20,8 +20,6 @@ img_to_tensor = transforms.ToTensor()
 
 class Algorithms():
     def __init__(self):
-        utils = Utils()
-        self.label_list = utils.get_Label_List()
         pass
 
     def get_SIFT_Features(self, image_path, num):  # 提取图片的SIFT特征
@@ -61,7 +59,6 @@ class Algorithms():
         block_size = (num_cells_per_block[0] * cell_size[0],
                       num_cells_per_block[1] * cell_size[1])
 
-
         x_cells = gray_image.shape[1] // cell_size[0]
         y_cells = gray_image.shape[0] // cell_size[1]
 
@@ -84,7 +81,6 @@ class Algorithms():
         # This is perfectly ok.
         win_size = (x_cells * cell_size[0], y_cells * cell_size[1])
 
-
         # Set the parameters of the HOG descriptor using the variables defined above
         hog = cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size, num_bins)
 
@@ -93,9 +89,9 @@ class Algorithms():
         return hog_descriptor.reshape((-1,))
 
     def make_model(self):
-        device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         model = models.vgg16(pretrained=False)  # 其实就是定位到第28层，对照着上面的key看就可以理解
-        pre=torch.load(r"./vgg16-397923af.pth").to(device)
+        pre = torch.load(r"./vgg16-397923af.pth").to(device)
         # if torch.cuda.is_available():
         #     pre = torch.load(r'./vgg16-397923af.pth')
         # else:
