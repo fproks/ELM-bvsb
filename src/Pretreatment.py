@@ -1,5 +1,8 @@
-import random
-
+'''
+@created: 2021.05.25
+@author: linhos
+description: pretreatment image data
+'''
 import numpy as np
 import os
 import cv2
