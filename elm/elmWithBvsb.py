@@ -1,4 +1,9 @@
 # -*- coding: utf8
+'''
+@created: 2021.05.25
+@author: linhos
+description: train elm use BVSB to get data to add in train data
+'''
 import numpy
 import numpy as np
 from typing import Tuple
