@@ -1,3 +1,8 @@
+'''
+@created: 2021.04.22
+@author: linhos
+description: implement OSELM
+'''
 import numpy as np
 from numpy.linalg import pinv
 from sklearn.preprocessing import LabelBinarizer
