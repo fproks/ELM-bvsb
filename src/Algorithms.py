@@ -4,8 +4,6 @@
 @created: 2021.05.24
 '''
 import cv2
-from Utils import *
-
 import torch
 import torch.nn
 import torchvision.models as models
@@ -20,8 +18,6 @@ img_to_tensor = transforms.ToTensor()
 
 class Algorithms():
     def __init__(self):
-        utils = Utils()
-        self.label_list = utils.get_Label_List()
         pass
 
     def get_SIFT_Features(self, image_path, num):  # 提取图片的SIFT特征
