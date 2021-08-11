@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
-import numpy as np
+'''
+@author: linhos
+@created: 2021.05.24
+'''
 import cv2
-from sklearn import svm
-import operator
-from sklearn.metrics import accuracy_score
 from Utils import *
 
 import torch
@@ -11,8 +11,6 @@ import torch.nn
 import torchvision.models as models
 from torch.autograd import Variable
 import torchvision.transforms as transforms
-
-import matplotlib.pyplot as plt
 
 from PIL import Image
 
