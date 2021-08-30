@@ -1,4 +1,5 @@
 Python-bvsb-ELM with KNN
+
 a self training method to classifiary image, ELM use elm as  classifier,use knn to determine which to determine categorical consistent data ，use bvsb as the extraction rule.
 use **VGG16** to extract image features
 ===============
