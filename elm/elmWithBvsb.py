@@ -2,6 +2,7 @@
 '''
 @created: 2021.05.25
 @author: linhos
+@email: linhos@126.com
 description: train elm use BVSB to get data to add in train data
 '''
 import numpy

@@ -1,6 +1,7 @@
 '''
 @created: 2021.04.22
 @author: linhos
+@email: linhos@126.com
 description: implement OSELM
 '''
 import numpy as np

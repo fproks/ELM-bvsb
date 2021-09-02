@@ -1,6 +1,7 @@
 '''
 @created: 2021.05.25
 @author: linhos
+@email: linhos@126.com
 description: reformatted data for train and test
 '''
 import numpy as np
