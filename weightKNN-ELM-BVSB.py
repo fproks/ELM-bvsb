@@ -1,3 +1,8 @@
+'''
+@author: linhos
+@email: linhos@126.com
+@created: 2021.08.12
+'''
 from elm import BvsbClassifier, BvsbUtils
 import numpy as np
 from sklearn.preprocessing import StandardScaler
