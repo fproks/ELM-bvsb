@@ -10,10 +10,10 @@ print("------EVM-BVSB-KNN------")
 # digits = load_digits()
 data = datasets.load_digits()
 stdc = StandardScaler()  # 均值归一化
-label_size = 0.3
+label_size = 0.1
 
 data.data = stdc.fit_transform(data.data / 16.0)
-train, iter, test = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.2)
+train, iter, test = elmUtils.splitDataWithIter(data.data, data.target, label_size, 0.7)
 
 Y_iter = BvsbUtils.KNNClassifierResult(train[0], train[1], iter[0])
 print(Y_iter.size)

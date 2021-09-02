@@ -4,8 +4,6 @@
 @created: 2021.05.24
 '''
 import cv2
-from Utils import *
-
 import torch
 import torch.nn
 import torchvision.models as models
