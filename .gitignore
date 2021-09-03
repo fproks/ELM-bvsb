@@ -1,6 +1,6 @@
 # JetBrains
 .idea
-
+venv
 *.py[cod]
 
 # C extensions
